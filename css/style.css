@@ -317,3 +317,99 @@ main {
 .bar__val { width: 44px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 
 .empty { color: var(--muted); font-size: 0.85rem; padding: 12px 0; }
+
+.bar--solo { border-bottom: none; padding-top: 0; }
+
+/* ---- 講のメニュー ---- */
+
+.lesson-meta { font-size: 0.78rem; color: var(--muted); margin: 8px 0 2px; }
+.lesson-title { font-size: 1.25rem; margin: 0 0 8px; }
+
+/* ---- 教本 ---- */
+
+.prose { font-size: 0.95rem; }
+.prose__title { font-size: 1.3rem; margin: 8px 0 20px; }
+
+.prose h3 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin: 32px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose h4 { font-size: 0.95rem; margin: 20px 0 6px; }
+.prose p { margin: 0 0 12px; }
+.prose ul, .prose ol { margin: 0 0 14px; padding-left: 1.3em; }
+.prose li { margin-bottom: 6px; }
+.prose strong { font-weight: 700; }
+
+.prose a { color: var(--accent); }
+
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.86em;
+  background: var(--accent-weak);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.prose blockquote {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.tablewrap { overflow-x: auto; margin: 0 0 16px; }
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.prose th, .prose td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th { background: var(--surface); font-weight: 700; white-space: nowrap; }
+
+/* 狭い画面では表を縦積みに組み替える。
+   横スクロールのまま4列を読むのはスマホでは無理があるため。 */
+@media (max-width: 560px) {
+  .prose thead { display: none; }
+  .prose table, .prose tbody, .prose tr, .prose td { display: block; width: 100%; }
+
+  .prose tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .prose td { border: none; border-bottom: 1px solid var(--border); padding: 8px 12px; }
+  .prose tr td:last-child { border-bottom: none; }
+
+  .prose td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  /* 1列目は見出し扱いにして、カードの頭であることを分かりやすくする */
+  .prose tr td:first-child { background: var(--accent-weak); font-weight: 700; }
+}

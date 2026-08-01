@@ -42,6 +42,26 @@
     <p class="note" id="build-note"></p>
   </section>
 
+  <!-- 講のメニュー -->
+  <section id="view-lesson" class="view" hidden>
+    <p class="lesson-meta" id="l-meta"></p>
+    <h2 class="lesson-title" id="l-title"></h2>
+    <div class="bar bar--solo">
+      <span class="bar__label">習得度</span>
+      <span class="bar__track"><i class="bar__fill" id="l-fill"></i></span>
+      <span class="bar__val" id="l-val"></span>
+    </div>
+    <button class="btn btn--primary" id="btn-read">教本を読む</button>
+    <button class="btn" id="btn-drill">演習する</button>
+  </section>
+
+  <!-- 教本 -->
+  <section id="view-read" class="view" hidden>
+    <article class="prose" id="read-body"></article>
+    <button class="btn btn--primary" id="btn-read-drill">この講の演習へ</button>
+    <button class="btn" id="btn-read-next">次の講を読む</button>
+  </section>
+
   <!-- 出題 -->
   <section id="view-quiz" class="view" hidden>
     <div class="quizbar">
@@ -88,6 +108,7 @@
 </main>
 
 <script src="js/data.js"></script>
+<script src="js/lessons.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

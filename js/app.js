@@ -8,6 +8,7 @@
   "use strict";
 
   var DATA = window.QUIZ_DATA || { lessons: [], questions: [] };
+  var TEXT = window.LESSON_DATA || { lessons: [] };
   var STORE_KEY = "gken_store_v1";
   var KEYS = ["ア", "イ", "ウ", "エ"];
   var TEST_SIZE = 20;
@@ -116,7 +117,7 @@
 
   // ---- 画面遷移 ------------------------------------------------------------
 
-  var VIEWS = ["home", "quiz", "result", "stats"];
+  var VIEWS = ["home", "lesson", "read", "quiz", "result", "stats"];
 
   function show(name, title) {
     VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
@@ -158,13 +159,95 @@
         '<span class="lesson__meter"><i style="width:' + pct + '%"></i></span>';
       b.querySelector(".lesson__id").textContent = les.id;
       b.querySelector(".lesson__title").textContent = les.title;
-      b.addEventListener("click", function () { start("lesson", les.id); });
+      b.addEventListener("click", function () { openLesson(les.id); });
       list.appendChild(b);
     });
 
     $("build-note").textContent =
       DATA.questions.length + "問 / " + DATA.lessons.length + "講" +
       (DATA.generatedAt ? "（データ更新 " + DATA.generatedAt + "）" : "");
+  }
+
+  // ---- 講のメニューと教本 ---------------------------------------------------
+
+  var currentLesson = null;
+
+  function lessonProgress(id) {
+    var qs = DATA.questions.filter(function (q) { return q.lesson === id; });
+    var done = qs.filter(function (q) {
+      var h = store.history[q.id];
+      return h && h.last;
+    }).length;
+    return { done: done, total: qs.length, pct: qs.length ? Math.round((done / qs.length) * 100) : 0 };
+  }
+
+  function textOf(id) {
+    for (var i = 0; i < TEXT.lessons.length; i++) {
+      if (TEXT.lessons[i].id === id) return TEXT.lessons[i];
+    }
+    return null;
+  }
+
+  function openLesson(id) {
+    currentLesson = id;
+    var les = null;
+    DATA.lessons.forEach(function (l) { if (l.id === id) les = l; });
+    var t = textOf(id);
+    var p = lessonProgress(id);
+
+    $("l-meta").textContent = id + (t ? "・約" + t.minutes + "分" : "");
+    $("l-title").textContent = les ? les.title : t ? t.title : id;
+    $("l-fill").style.width = p.pct + "%";
+    $("l-fill").className = "bar__fill" + (p.pct < 70 ? " bar__fill--warn" : "");
+    $("l-val").textContent = p.pct + "%";
+
+    $("btn-read").disabled = !t;
+    $("btn-read").textContent = t ? "教本を読む" : "教本はまだありません";
+    $("btn-drill").disabled = p.total === 0;
+    $("btn-drill").textContent = p.total ? "演習する（" + p.total + "問）" : "演習はまだありません";
+
+    show("lesson", id);
+  }
+
+  function openRead(id) {
+    var t = textOf(id);
+    if (!t) return;
+    currentLesson = id;
+
+    var body = $("read-body");
+    body.innerHTML = "";
+
+    var h = document.createElement("h2");
+    h.className = "prose__title";
+    h.textContent = t.title;
+    body.appendChild(h);
+
+    t.sections.forEach(function (s) {
+      var sec = document.createElement("section");
+      var sh = document.createElement("h3");
+      sh.textContent = s.heading;
+      sec.appendChild(sh);
+      var div = document.createElement("div");
+      div.innerHTML = s.html; // 生成元は自分たちの lessons/*.md
+      sec.appendChild(div);
+      body.appendChild(sec);
+    });
+
+    var p = lessonProgress(id);
+    $("btn-read-drill").hidden = p.total === 0;
+    $("btn-read-drill").textContent = "この講の演習へ（" + p.total + "問）";
+
+    var nx = nextLessonId(id);
+    $("btn-read-next").hidden = !nx;
+    if (nx) $("btn-read-next").textContent = "次の講を読む（" + nx + "）";
+
+    show("read", id);
+  }
+
+  function nextLessonId(id) {
+    var ids = TEXT.lessons.map(function (l) { return l.id; });
+    var i = ids.indexOf(id);
+    return i >= 0 && i + 1 < ids.length ? ids[i + 1] : null;
   }
 
   // ---- 出題 ----------------------------------------------------------------
@@ -448,7 +531,17 @@
     show("stats", "成績");
   });
 
+  $("btn-read").addEventListener("click", function () { openRead(currentLesson); });
+  $("btn-drill").addEventListener("click", function () { start("lesson", currentLesson); });
+  $("btn-read-drill").addEventListener("click", function () { start("lesson", currentLesson); });
+  $("btn-read-next").addEventListener("click", function () {
+    var nx = nextLessonId(currentLesson);
+    if (nx) openRead(nx);
+  });
+
   $("btn-back").addEventListener("click", function () {
+    // 教本からは講のメニューへ戻る。それ以外はホームへ
+    if (!$("view-read").hidden) { openLesson(currentLesson); return; }
     if (!$("view-quiz").hidden && session && session.i > 0 &&
         !confirm("演習を中断しますか。ここまでの解答は記録されています。")) return;
     stopTimer();
