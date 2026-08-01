@@ -1,0 +1,484 @@
+/* G検定ドリル — アプリ本体
+ *
+ * 学習記録は localStorage にのみ保存する。外部送信はしない。
+ * 問題データは js/data.js（g-kentei-study の quiz/*.js から生成）。
+ */
+
+(function () {
+  "use strict";
+
+  var DATA = window.QUIZ_DATA || { lessons: [], questions: [] };
+  var STORE_KEY = "gken_store_v1";
+  var KEYS = ["ア", "イ", "ウ", "エ"];
+  var TEST_SIZE = 20;
+  var TEST_SECONDS = 14 * 60; // 本番は約41秒/問。20問なら約14分
+  var WEAK_THRESHOLD = 0.7;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- 保存 ----------------------------------------------------------------
+
+  var store = load();
+
+  function load() {
+    var empty = { history: {}, sessions: [], days: {} };
+    try {
+      var s = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (!s || typeof s !== "object") return empty;
+      return {
+        history: s.history || {},
+        sessions: s.sessions || [],
+        days: s.days || {}
+      };
+    } catch (e) {
+      return empty;
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    } catch (e) {
+      /* 容量超過などは黙って諦める。学習は続けられる */
+    }
+  }
+
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function record(qid, correct) {
+    var h = store.history[qid] || { a: 0, c: 0, last: false };
+    h.a += 1;
+    if (correct) h.c += 1;
+    h.last = correct;
+    store.history[qid] = h;
+
+    var k = todayKey();
+    store.days[k] = (store.days[k] || 0) + 1;
+  }
+
+  function streak() {
+    var n = 0;
+    var d = new Date();
+    // 今日まだ解いていなければ、昨日までの連続を数える
+    if (!store.days[todayKey()]) d.setDate(d.getDate() - 1);
+    for (;;) {
+      var k = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+      if (!store.days[k]) break;
+      n += 1;
+      d.setDate(d.getDate() - 1);
+    }
+    return n;
+  }
+
+  function totals() {
+    var a = 0, c = 0;
+    for (var id in store.history) {
+      a += store.history[id].a;
+      c += store.history[id].c;
+    }
+    return { a: a, c: c };
+  }
+
+  // ---- 出題対象の選び方 -----------------------------------------------------
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function weakQuestions() {
+    return DATA.questions.filter(function (q) {
+      var h = store.history[q.id];
+      if (!h) return false;             // 未挑戦は苦手ではない
+      if (h.last === false) return true; // 直近で間違えた
+      return h.c / h.a < WEAK_THRESHOLD; // 正答率が低い
+    });
+  }
+
+  function pick(mode, lessonId) {
+    if (mode === "lesson") {
+      return shuffle(DATA.questions.filter(function (q) { return q.lesson === lessonId; }));
+    }
+    if (mode === "weak") {
+      return shuffle(weakQuestions());
+    }
+    return shuffle(DATA.questions).slice(0, TEST_SIZE);
+  }
+
+  // ---- 画面遷移 ------------------------------------------------------------
+
+  var VIEWS = ["home", "quiz", "result", "stats"];
+
+  function show(name, title) {
+    VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
+    $("topbar-title").textContent = title || "G検定ドリル";
+    $("btn-back").hidden = name === "home";
+    $("btn-stats").hidden = name !== "home";
+    window.scrollTo(0, 0);
+  }
+
+  // ---- ホーム --------------------------------------------------------------
+
+  function renderHome() {
+    var t = totals();
+    $("stat-streak").textContent = streak();
+    $("stat-today").textContent = store.days[todayKey()] || 0;
+    $("stat-rate").textContent = t.a ? Math.round((t.c / t.a) * 100) + "%" : "—";
+
+    var weak = weakQuestions().length;
+    $("weak-count").textContent = weak
+      ? weak + "問たまっています"
+      : "まだありません（間違えると溜まります）";
+    document.querySelector('[data-mode="weak"]').disabled = weak === 0;
+
+    var list = $("lesson-list");
+    list.innerHTML = "";
+    DATA.lessons.forEach(function (les) {
+      var qs = DATA.questions.filter(function (q) { return q.lesson === les.id; });
+      var done = qs.filter(function (q) {
+        var h = store.history[q.id];
+        return h && h.last;
+      }).length;
+      var pct = qs.length ? Math.round((done / qs.length) * 100) : 0;
+
+      var b = document.createElement("button");
+      b.className = "lesson";
+      b.innerHTML =
+        '<span class="lesson__id"></span>' +
+        '<span class="lesson__title"></span>' +
+        '<span class="lesson__meter"><i style="width:' + pct + '%"></i></span>';
+      b.querySelector(".lesson__id").textContent = les.id;
+      b.querySelector(".lesson__title").textContent = les.title;
+      b.addEventListener("click", function () { start("lesson", les.id); });
+      list.appendChild(b);
+    });
+
+    $("build-note").textContent =
+      DATA.questions.length + "問 / " + DATA.lessons.length + "講" +
+      (DATA.generatedAt ? "（データ更新 " + DATA.generatedAt + "）" : "");
+  }
+
+  // ---- 出題 ----------------------------------------------------------------
+
+  var session = null;
+  var timerId = null;
+
+  function start(mode, lessonId) {
+    var qs = pick(mode, lessonId);
+    if (qs.length === 0) return;
+
+    session = {
+      mode: mode,
+      lessonId: lessonId || null,
+      queue: qs,
+      i: 0,
+      correct: 0,
+      wrong: [],
+      answered: false,
+      endsAt: mode === "test" ? Date.now() + TEST_SECONDS * 1000 : null
+    };
+
+    show("quiz", mode === "test" ? "本番形式テスト" : mode === "weak" ? "苦手復習" : lessonId || "ランダム20問");
+    if (session.endsAt) startTimer(); else $("q-timer").textContent = "";
+    renderQuestion();
+  }
+
+  function startTimer() {
+    stopTimer();
+    timerId = setInterval(tick, 250);
+    tick();
+  }
+
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+
+  function tick() {
+    if (!session || !session.endsAt) return;
+    var left = Math.max(0, Math.round((session.endsAt - Date.now()) / 1000));
+    var el = $("q-timer");
+    el.textContent = "残り " + Math.floor(left / 60) + ":" + pad(left % 60);
+    el.className = left <= 60 ? "timer timer--warn" : "timer";
+    if (left === 0) finish();
+  }
+
+  function renderQuestion() {
+    var q = session.queue[session.i];
+    session.answered = false;
+
+    $("q-count").textContent = (session.i + 1) + " / " + session.queue.length;
+    $("q-progress").style.width = ((session.i / session.queue.length) * 100) + "%";
+    $("q-topic").textContent = q.topic || "";
+    $("q-text").textContent = q.text;
+    $("q-feedback").hidden = true;
+
+    var box = $("q-options");
+    box.innerHTML = "";
+    q.options.forEach(function (opt, idx) {
+      var b = document.createElement("button");
+      b.className = "option";
+      b.innerHTML = '<span class="option__key"></span><span class="option__body"></span>';
+      b.querySelector(".option__key").textContent = KEYS[idx];
+      b.querySelector(".option__body").textContent = opt;
+      b.addEventListener("click", function () { answer(idx); });
+      box.appendChild(b);
+    });
+  }
+
+  function answer(idx) {
+    if (session.answered) return;
+    session.answered = true;
+
+    var q = session.queue[session.i];
+    var ok = idx === q.answer;
+
+    record(q.id, ok);
+    if (ok) session.correct += 1;
+    else session.wrong.push({ q: q, chose: idx });
+    save();
+
+    var buttons = $("q-options").children;
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+      if (i === q.answer) buttons[i].classList.add("option--ok");
+      else if (i === idx) buttons[i].classList.add("option--ng");
+    }
+
+    // テストモードは解説を出さずテンポよく進む
+    if (session.mode === "test") {
+      setTimeout(next, 350);
+      return;
+    }
+
+    var verdict = $("q-verdict");
+    verdict.textContent = ok ? "正解" : "不正解";
+    verdict.className = "feedback__verdict " + (ok ? "feedback__verdict--ok" : "feedback__verdict--ng");
+    $("q-explanation").textContent = strip(q.explanation);
+
+    var why = $("q-why");
+    why.innerHTML = "";
+    Object.keys(q.why || {}).forEach(function (k) {
+      var li = document.createElement("li");
+      li.textContent = KEYS[Number(k)] + "：" + strip(q.why[k]);
+      why.appendChild(li);
+    });
+
+    $("q-feedback").hidden = false;
+    $("btn-next").textContent = session.i + 1 >= session.queue.length ? "結果を見る" : "次へ";
+  }
+
+  /* 解説の ** は markdown の名残。画面では素のテキストにする */
+  function strip(s) { return String(s).replace(/\*\*/g, ""); }
+
+  function next() {
+    session.i += 1;
+    if (session.i >= session.queue.length) finish();
+    else renderQuestion();
+  }
+
+  function finish() {
+    stopTimer();
+    var total = session.i + (session.answered ? 1 : 0);
+    if (total > session.queue.length) total = session.queue.length;
+
+    store.sessions.push({
+      ts: Date.now(),
+      mode: session.mode,
+      lesson: session.lessonId,
+      score: session.correct,
+      total: total
+    });
+    if (store.sessions.length > 300) store.sessions = store.sessions.slice(-300);
+    save();
+
+    var pct = total ? Math.round((session.correct / total) * 100) : 0;
+    $("r-score").textContent = session.correct + " / " + total;
+    $("r-label").textContent = "正答率 " + pct + "%" +
+      (session.mode === "test" && pct < 75 ? "（合格ラインの目安は75%）" : "");
+
+    var box = $("r-review");
+    box.innerHTML = "";
+    if (session.wrong.length === 0) {
+      var p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "全問正解。";
+      box.appendChild(p);
+    } else {
+      session.wrong.forEach(function (w) {
+        var d = document.createElement("div");
+        d.className = "review";
+        d.innerHTML =
+          '<p class="review__q"></p>' +
+          '<p class="review__a">あなた：<span class="chose"></span> ／ 正解：<b class="ans"></b></p>' +
+          '<p class="review__e"></p>';
+        d.querySelector(".review__q").textContent = w.q.text;
+        d.querySelector(".chose").textContent = KEYS[w.chose] + " " + w.q.options[w.chose];
+        d.querySelector(".ans").textContent = KEYS[w.q.answer] + " " + w.q.options[w.q.answer];
+        d.querySelector(".review__e").textContent = strip(w.q.explanation);
+        box.appendChild(d);
+      });
+    }
+
+    show("result", "結果");
+  }
+
+  // ---- 成績 ----------------------------------------------------------------
+
+  function bar(label, done, total) {
+    var pct = total ? Math.round((done / total) * 100) : 0;
+    var row = document.createElement("div");
+    row.className = "bar";
+    row.innerHTML =
+      '<span class="bar__label"></span>' +
+      '<span class="bar__track"><i class="bar__fill' + (pct < 70 ? " bar__fill--warn" : "") +
+      '" style="width:' + pct + '%"></i></span>' +
+      '<span class="bar__val">' + pct + "%</span>";
+    row.querySelector(".bar__label").textContent = label;
+    return row;
+  }
+
+  function renderStats() {
+    var box = $("s-lessons");
+    box.innerHTML = "";
+    DATA.lessons.forEach(function (les) {
+      var qs = DATA.questions.filter(function (q) { return q.lesson === les.id; });
+      var done = qs.filter(function (q) {
+        var h = store.history[q.id];
+        return h && h.last;
+      }).length;
+      box.appendChild(bar(les.id + " " + les.title, done, qs.length));
+    });
+    if (!DATA.lessons.length) box.innerHTML = '<p class="empty">問題がまだありません。</p>';
+
+    var byTopic = {};
+    DATA.questions.forEach(function (q) {
+      var h = store.history[q.id];
+      if (!h) return;
+      var t = q.topic || "その他";
+      if (!byTopic[t]) byTopic[t] = { a: 0, c: 0 };
+      byTopic[t].a += h.a;
+      byTopic[t].c += h.c;
+    });
+
+    var tbox = $("s-topics");
+    tbox.innerHTML = "";
+    var names = Object.keys(byTopic).sort(function (x, y) {
+      return byTopic[x].c / byTopic[x].a - byTopic[y].c / byTopic[y].a;
+    });
+    var weak = names.filter(function (n) { return byTopic[n].c / byTopic[n].a < WEAK_THRESHOLD; });
+    if (weak.length === 0) {
+      tbox.innerHTML = '<p class="empty">' +
+        (names.length ? "正答率70%を下回る分野はありません。" : "まだ集計できるデータがありません。") + "</p>";
+    } else {
+      weak.forEach(function (n) { tbox.appendChild(bar(n, byTopic[n].c, byTopic[n].a)); });
+    }
+  }
+
+  /* 学習記録を Claude Code に貼れる形で書き出す。/review がこれを読んで弱点演習を作る */
+  function exportText() {
+    var t = totals();
+    var lines = [];
+    lines.push("# G検定ドリル 学習記録 " + todayKey());
+    lines.push("");
+    lines.push("- 累計 " + t.a + "回答 / 正答 " + t.c + "（" + (t.a ? Math.round((t.c / t.a) * 100) : 0) + "%）");
+    lines.push("- 連続学習日数 " + streak());
+    lines.push("");
+    lines.push("## 未定着の問題（直近で誤答、または正答率70%未満）");
+    lines.push("");
+
+    var weak = weakQuestions();
+    if (!weak.length) {
+      lines.push("なし");
+    } else {
+      weak.forEach(function (q) {
+        var h = store.history[q.id];
+        lines.push("- " + q.id + "（" + (q.topic || "分類なし") + "）" +
+          h.c + "/" + h.a + " 直近" + (h.last ? "正解" : "誤答") + "：" + q.text);
+      });
+    }
+    lines.push("");
+    lines.push("この記録をもとに弱点演習を作ってください。");
+    return lines.join("\n");
+  }
+
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      // 権限が下りない環境（http、古いブラウザ）では reject するので拾い直す
+      return navigator.clipboard.writeText(text).catch(function () { return legacyCopy(text); });
+    }
+    return legacyCopy(text);
+  }
+
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) { /* 失敗時は下で通知 */ }
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+
+  // ---- 配線 ----------------------------------------------------------------
+
+  document.querySelectorAll("[data-mode]").forEach(function (b) {
+    b.addEventListener("click", function () { start(b.dataset.mode); });
+  });
+
+  $("btn-next").addEventListener("click", next);
+
+  $("btn-home").addEventListener("click", function () {
+    renderHome();
+    show("home");
+  });
+
+  $("btn-stats").addEventListener("click", function () {
+    renderStats();
+    show("stats", "成績");
+  });
+
+  $("btn-back").addEventListener("click", function () {
+    if (!$("view-quiz").hidden && session && session.i > 0 &&
+        !confirm("演習を中断しますか。ここまでの解答は記録されています。")) return;
+    stopTimer();
+    session = null;
+    renderHome();
+    show("home");
+  });
+
+  $("btn-export").addEventListener("click", function () {
+    var btn = $("btn-export");
+    copy(exportText()).then(function () {
+      btn.textContent = "コピーしました";
+      setTimeout(function () { btn.textContent = "記録をコピー（Claude Code に貼る用）"; }, 2000);
+    });
+  });
+
+  $("btn-reset").addEventListener("click", function () {
+    if (!confirm("学習記録をすべて消します。取り消せません。よろしいですか。")) return;
+    store = { history: {}, sessions: [], days: {} };
+    save();
+    renderStats();
+    renderHome();
+  });
+
+  renderHome();
+  show("home");
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () { /* オフライン化は諦める */ });
+    });
+  }
+})();

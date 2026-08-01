@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>G検定ドリル</title>
+<meta name="description" content="G検定の四択演習。学習記録は端末内にのみ保存されます。">
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="topbar__back" id="btn-back" hidden aria-label="戻る">←</button>
+  <h1 class="topbar__title" id="topbar-title">G検定ドリル</h1>
+  <button class="topbar__stats" id="btn-stats" aria-label="成績">📊</button>
+</header>
+
+<main>
+
+  <!-- ホーム -->
+  <section id="view-home" class="view">
+    <div class="tiles">
+      <div class="tile"><div class="tile__num" id="stat-streak">0</div><div class="tile__label">連続日数</div></div>
+      <div class="tile"><div class="tile__num" id="stat-today">0</div><div class="tile__label">今日の問題</div></div>
+      <div class="tile"><div class="tile__num" id="stat-rate">—</div><div class="tile__label">累計正答率</div></div>
+    </div>
+
+    <h2 class="h2">学習モード</h2>
+    <div class="modes">
+      <button class="mode" data-mode="random"><span class="mode__name">ランダム20問</span><span class="mode__desc">全範囲からまんべんなく</span></button>
+      <button class="mode" data-mode="weak"><span class="mode__name">苦手復習</span><span class="mode__desc" id="weak-count">間違えた問題を集めて出題</span></button>
+      <button class="mode" data-mode="test"><span class="mode__name">本番形式テスト</span><span class="mode__desc">20問・14分・解説なし</span></button>
+    </div>
+
+    <h2 class="h2">講別</h2>
+    <div class="lessons" id="lesson-list"></div>
+
+    <p class="note" id="build-note"></p>
+  </section>
+
+  <!-- 出題 -->
+  <section id="view-quiz" class="view" hidden>
+    <div class="quizbar">
+      <div class="quizbar__progress"><div class="quizbar__fill" id="q-progress"></div></div>
+      <div class="quizbar__meta"><span id="q-count"></span><span id="q-timer" class="timer"></span></div>
+    </div>
+
+    <p class="q-topic" id="q-topic"></p>
+    <p class="q-text" id="q-text"></p>
+    <div class="options" id="q-options"></div>
+
+    <div class="feedback" id="q-feedback" hidden>
+      <p class="feedback__verdict" id="q-verdict"></p>
+      <p class="feedback__body" id="q-explanation"></p>
+      <ul class="feedback__why" id="q-why"></ul>
+      <button class="btn btn--primary" id="btn-next">次へ</button>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="view-result" class="view" hidden>
+    <div class="score">
+      <div class="score__num" id="r-score"></div>
+      <div class="score__label" id="r-label"></div>
+    </div>
+    <div id="r-review"></div>
+    <button class="btn btn--primary" id="btn-home">ホームへ</button>
+  </section>
+
+  <!-- 成績 -->
+  <section id="view-stats" class="view" hidden>
+    <h2 class="h2">講別の習得度</h2>
+    <div id="s-lessons"></div>
+
+    <h2 class="h2">苦手な分野</h2>
+    <div id="s-topics"></div>
+
+    <h2 class="h2">学習記録</h2>
+    <p class="note">記録はこの端末のブラウザ内にのみ保存されます。外部に送信されません。</p>
+    <button class="btn" id="btn-export">記録をコピー（Claude Code に貼る用）</button>
+    <button class="btn btn--danger" id="btn-reset">記録を全消去</button>
+  </section>
+
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
