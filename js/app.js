@@ -9,6 +9,7 @@
 
   var DATA = window.QUIZ_DATA || { lessons: [], questions: [] };
   var TEXT = window.LESSON_DATA || { lessons: [] };
+  var MAP = window.MAP_DATA || { areas: [], lessons: [], totalItems: 0 };
   var STORE_KEY = "gken_store_v1";
   var KEYS = ["ア", "イ", "ウ", "エ"];
   var TEST_SIZE = 20;
@@ -141,31 +142,94 @@
       : "まだありません（間違えると溜まります）";
     document.querySelector('[data-mode="weak"]').disabled = weak === 0;
 
-    var list = $("lesson-list");
-    list.innerHTML = "";
-    DATA.lessons.forEach(function (les) {
-      var qs = DATA.questions.filter(function (q) { return q.lesson === les.id; });
-      var done = qs.filter(function (q) {
-        var h = store.history[q.id];
-        return h && h.last;
-      }).length;
-      var pct = qs.length ? Math.round((done / qs.length) * 100) : 0;
+    renderAreas();
 
-      var b = document.createElement("button");
-      b.className = "lesson";
-      b.innerHTML =
-        '<span class="lesson__id"></span>' +
-        '<span class="lesson__title"></span>' +
-        '<span class="lesson__meter"><i style="width:' + pct + '%"></i></span>';
-      b.querySelector(".lesson__id").textContent = les.id;
-      b.querySelector(".lesson__title").textContent = les.title;
-      b.addEventListener("click", function () { openLesson(les.id); });
-      list.appendChild(b);
-    });
-
+    var ready = MAP.lessons.filter(function (l) { return l.hasText; }).length;
     $("build-note").textContent =
-      DATA.questions.length + "問 / " + DATA.lessons.length + "講" +
-      (DATA.generatedAt ? "（データ更新 " + DATA.generatedAt + "）" : "");
+      "公式シラバス 大項目" + MAP.areas.length + "・中項目" + MAP.totalItems +
+      " に対応した全" + MAP.lessons.length + "講。教本" + ready + "講 / 演習" +
+      DATA.questions.length + "問" +
+      (MAP.generatedAt ? "（更新 " + MAP.generatedAt + "）" : "");
+  }
+
+  /* 試験範囲を大項目ごとに並べ、講の状態を出す。
+     教材が未作成の講も「準備中」として出す。全体像が見えないと今どこにいるか分からないため */
+  function renderAreas() {
+    var box = $("area-list");
+    box.innerHTML = "";
+
+    MAP.areas.forEach(function (area) {
+      var wrap = document.createElement("section");
+      wrap.className = "area";
+
+      var lessons = area.lessons.map(lessonMeta).filter(Boolean);
+      var agg = lessons.reduce(
+        function (a, l) {
+          var p = lessonProgress(l.id);
+          a.done += p.done;
+          a.total += p.total;
+          return a;
+        },
+        { done: 0, total: 0 }
+      );
+      var pct = agg.total ? Math.round((agg.done / agg.total) * 100) : 0;
+
+      var head = document.createElement("div");
+      head.className = "area__head";
+      head.innerHTML =
+        '<span class="area__part"></span>' +
+        '<span class="area__name"></span>' +
+        '<span class="area__pct"></span>';
+      head.querySelector(".area__part").textContent = area.part;
+      head.querySelector(".area__name").textContent = area.name;
+      head.querySelector(".area__pct").textContent = agg.total ? pct + "%" : "—";
+      wrap.appendChild(head);
+
+      lessons.forEach(function (l) {
+        wrap.appendChild(lessonRow(l));
+      });
+
+      box.appendChild(wrap);
+    });
+  }
+
+  function lessonMeta(id) {
+    for (var i = 0; i < MAP.lessons.length; i++) {
+      if (MAP.lessons[i].id === id) return MAP.lessons[i];
+    }
+    return null;
+  }
+
+  function lessonRow(meta) {
+    var p = lessonProgress(meta.id);
+    var b = document.createElement("button");
+    b.className = "lesson";
+
+    var state, cls;
+    if (p.total > 0 && p.attempted > 0) {
+      state = p.pct + "%";
+      cls = p.pct >= 70 ? "lesson__state--ok" : "lesson__state--warn";
+    } else if (meta.hasText || p.total > 0) {
+      state = "未着手";
+      cls = "";
+    } else {
+      state = "準備中";
+      cls = "lesson__state--none";
+      b.disabled = true;
+    }
+
+    b.innerHTML =
+      '<span class="lesson__id"></span>' +
+      '<span class="lesson__title"></span>' +
+      '<span class="lesson__state ' + cls + '"></span>';
+    b.querySelector(".lesson__id").textContent = meta.id;
+    b.querySelector(".lesson__title").textContent = meta.title;
+    b.querySelector(".lesson__state").textContent = state;
+
+    if (!b.disabled) {
+      b.addEventListener("click", function () { openLesson(meta.id); });
+    }
+    return b;
   }
 
   // ---- 講のメニューと教本 ---------------------------------------------------
@@ -174,11 +238,20 @@
 
   function lessonProgress(id) {
     var qs = DATA.questions.filter(function (q) { return q.lesson === id; });
-    var done = qs.filter(function (q) {
+    var done = 0;
+    var attempted = 0;
+    qs.forEach(function (q) {
       var h = store.history[q.id];
-      return h && h.last;
-    }).length;
-    return { done: done, total: qs.length, pct: qs.length ? Math.round((done / qs.length) * 100) : 0 };
+      if (!h) return;
+      attempted += 1;
+      if (h.last) done += 1;
+    });
+    return {
+      done: done,
+      attempted: attempted,
+      total: qs.length,
+      pct: qs.length ? Math.round((done / qs.length) * 100) : 0
+    };
   }
 
   function textOf(id) {
@@ -190,13 +263,13 @@
 
   function openLesson(id) {
     currentLesson = id;
-    var les = null;
-    DATA.lessons.forEach(function (l) { if (l.id === id) les = l; });
+    var meta = lessonMeta(id);
     var t = textOf(id);
     var p = lessonProgress(id);
 
-    $("l-meta").textContent = id + (t ? "・約" + t.minutes + "分" : "");
-    $("l-title").textContent = les ? les.title : t ? t.title : id;
+    $("l-meta").textContent =
+      id + (meta ? "・" + meta.area : "") + (t ? "・約" + t.minutes + "分" : "");
+    $("l-title").textContent = meta ? meta.title : t ? t.title : id;
     $("l-fill").style.width = p.pct + "%";
     $("l-fill").className = "bar__fill" + (p.pct < 70 ? " bar__fill--warn" : "");
     $("l-val").textContent = p.pct + "%";
@@ -430,15 +503,31 @@
   }
 
   function renderStats() {
+    // 大項目ごと。試験範囲のどこが弱いかは、講より大項目の粒度で見たい
+    var abox = $("s-areas");
+    abox.innerHTML = "";
+    MAP.areas.forEach(function (area) {
+      var agg = area.lessons.reduce(
+        function (a, id) {
+          var p = lessonProgress(id);
+          a.done += p.done;
+          a.total += p.total;
+          return a;
+        },
+        { done: 0, total: 0 }
+      );
+      if (agg.total === 0) return; // 演習が1問もない大項目は出さない
+      abox.appendChild(bar(area.name, agg.done, agg.total));
+    });
+    if (!abox.children.length) {
+      abox.innerHTML = '<p class="empty">まだ演習がありません。</p>';
+    }
+
     var box = $("s-lessons");
     box.innerHTML = "";
     DATA.lessons.forEach(function (les) {
-      var qs = DATA.questions.filter(function (q) { return q.lesson === les.id; });
-      var done = qs.filter(function (q) {
-        var h = store.history[q.id];
-        return h && h.last;
-      }).length;
-      box.appendChild(bar(les.id + " " + les.title, done, qs.length));
+      var p = lessonProgress(les.id);
+      box.appendChild(bar(les.id + " " + les.title, p.done, p.total));
     });
     if (!DATA.lessons.length) box.innerHTML = '<p class="empty">問題がまだありません。</p>';
 

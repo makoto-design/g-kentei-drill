@@ -9,7 +9,7 @@
  *     変化が少なく、毎回取りに行く必要がない。
  * どちらもオフライン時はキャッシュから返すので、機内モードでも動く。
  */
-const CACHE_VERSION = "gken-202608021146";
+const CACHE_VERSION = "gken-202608021407";
 
 const PRECACHE = [
   "./",
@@ -18,6 +18,7 @@ const PRECACHE = [
   "./js/app.js",
   "./js/data.js",
   "./js/lessons.js",
+  "./js/map.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -27,7 +28,7 @@ const PRECACHE = [
 function isContent(request) {
   if (request.mode === "navigate") return true;
   const p = new URL(request.url).pathname;
-  return p.endsWith(".html") || p.endsWith("/data.js") || p.endsWith("/lessons.js") || p.endsWith("/app.js");
+  return p.endsWith(".html") || p.endsWith("/data.js") || p.endsWith("/lessons.js") || p.endsWith("/map.js") || p.endsWith("/app.js");
 }
 
 self.addEventListener("install", (e) => {

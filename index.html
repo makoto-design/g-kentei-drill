@@ -36,8 +36,8 @@
       <button class="mode" data-mode="test"><span class="mode__name">本番形式テスト</span><span class="mode__desc">20問・14分・解説なし</span></button>
     </div>
 
-    <h2 class="h2">講別</h2>
-    <div class="lessons" id="lesson-list"></div>
+    <h2 class="h2">試験範囲と達成状況</h2>
+    <div id="area-list"></div>
 
     <p class="note" id="build-note"></p>
   </section>
@@ -93,6 +93,9 @@
 
   <!-- 成績 -->
   <section id="view-stats" class="view" hidden>
+    <h2 class="h2">大項目別の習得度</h2>
+    <div id="s-areas"></div>
+
     <h2 class="h2">講別の習得度</h2>
     <div id="s-lessons"></div>
 
@@ -109,6 +112,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/lessons.js"></script>
+<script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

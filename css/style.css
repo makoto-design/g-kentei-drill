@@ -162,6 +162,42 @@ main {
 .mode__name { font-weight: 700; }
 .mode__desc { font-size: 0.78rem; color: var(--muted); }
 
+/* ---- 大項目のまとまり ---- */
+
+.area { margin-bottom: 18px; }
+
+.area__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 2px 6px;
+}
+
+.area__part {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--surface);
+  background: var(--muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.area__name { flex: 1; font-size: 0.9rem; font-weight: 700; }
+.area__pct { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.lesson__state {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lesson__state--ok { color: var(--ok); }
+.lesson__state--warn { color: var(--ng); }
+.lesson__state--none { font-weight: 400; opacity: 0.6; }
+
 .lessons { display: grid; gap: 6px; }
 
 .lesson {
