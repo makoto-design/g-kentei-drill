@@ -172,8 +172,8 @@ window.MAP_DATA = {
         "技7"
       ],
       "area": "機械学習の概要",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 7
     },
     {
       "id": "M2-02",
