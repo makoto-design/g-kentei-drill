@@ -410,6 +410,22 @@ main {
   font-size: 0.88rem;
 }
 
+.prose li.todo { list-style: none; margin-left: -1.3em; }
+
+.todo__mark {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ng);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+.todo--done .todo__mark { background: var(--ok); }
+
 .tablewrap { overflow-x: auto; margin: 0 0 16px; }
 
 .prose table {
