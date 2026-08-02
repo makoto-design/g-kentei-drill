@@ -10,7 +10,7 @@ window.MAP_DATA = {
       "items": 2,
       "lessons": [
         "M1-01",
-        "M1-04"
+        "M1-02"
       ]
     },
     {
@@ -18,8 +18,8 @@ window.MAP_DATA = {
       "part": "技術",
       "items": 4,
       "lessons": [
-        "M1-02",
         "M1-03",
+        "M1-04",
         "M1-05"
       ]
     },
@@ -121,6 +121,17 @@ window.MAP_DATA = {
     },
     {
       "id": "M1-02",
+      "title": "AI分野で議論される問題",
+      "module": "M1",
+      "refs": [
+        "技2"
+      ],
+      "area": "人工知能とは",
+      "hasText": true,
+      "questions": 6
+    },
+    {
+      "id": "M1-03",
       "title": "探索・推論",
       "module": "M1",
       "refs": [
@@ -131,24 +142,13 @@ window.MAP_DATA = {
       "questions": 0
     },
     {
-      "id": "M1-03",
+      "id": "M1-04",
       "title": "知識表現とエキスパートシステム",
       "module": "M1",
       "refs": [
         "技4"
       ],
       "area": "人工知能をめぐる動向",
-      "hasText": false,
-      "questions": 0
-    },
-    {
-      "id": "M1-04",
-      "title": "AI分野で議論される問題",
-      "module": "M1",
-      "refs": [
-        "技2"
-      ],
-      "area": "人工知能とは",
       "hasText": false,
       "questions": 0
     },
@@ -233,11 +233,10 @@ window.MAP_DATA = {
     },
     {
       "id": "M3-03",
-      "title": "誤差逆伝播法と最適化手法",
+      "title": "正則化",
       "module": "M3",
       "refs": [
-        "技15",
-        "技16"
+        "技14"
       ],
       "area": "ディープラーニングの概要",
       "hasText": false,
@@ -245,10 +244,11 @@ window.MAP_DATA = {
     },
     {
       "id": "M3-04",
-      "title": "正則化",
+      "title": "誤差逆伝播法と最適化手法",
       "module": "M3",
       "refs": [
-        "技14"
+        "技15",
+        "技16"
       ],
       "area": "ディープラーニングの概要",
       "hasText": false,
