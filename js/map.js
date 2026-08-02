@@ -138,8 +138,8 @@ window.MAP_DATA = {
         "技3"
       ],
       "area": "人工知能をめぐる動向",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 6
     },
     {
       "id": "M1-04",
