@@ -70,6 +70,14 @@ main {
   font-weight: 700;
 }
 
+/* 広い画面では、ヘッダーの中身を本文（max-width 720px）と同じ幅に揃える */
+@media (min-width: 768px) {
+  .topbar {
+    padding-left: calc((100% - 720px) / 2);
+    padding-right: calc((100% - 720px) / 2);
+  }
+}
+
 .topbar__back,
 .topbar__stats {
   min-width: var(--tap);
