@@ -1,7 +1,7 @@
 /* オフラインキャッシュ。
    問題データや画面を更新したら CACHE_VERSION を必ず上げること。
    上げないと端末が古いキャッシュを表示し続ける。 */
-const CACHE_VERSION = "gken-202608011758";
+const CACHE_VERSION = "gken-202608020254";
 
 const PRECACHE = [
   "./",
