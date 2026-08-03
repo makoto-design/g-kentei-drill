@@ -276,8 +276,8 @@ window.MAP_DATA = {
         "技21"
       ],
       "area": "ディープラーニングの要素技術",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 6
     },
     {
       "id": "M4-03",
