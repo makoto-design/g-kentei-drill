@@ -521,6 +521,46 @@ window.LESSON_DATA = {
           "html": "<ul><li>誤差逆伝播法は<strong>連鎖律</strong>を使って、誤差への影響を出力側から入力側へ計算していく</li><li><strong>バッチ＝全件／ミニバッチ＝数十〜数百件／オンライン＝1件</strong>。<strong>エポック＝1周、イテレーション＝1更新</strong></li><li><strong>局所最適解は動けない、鞍点は方向によって下れる</strong>。Adam はモーメンタム＋学習率自動調整で現在の既定</li></ul>"
         }
       ]
+    },
+    {
+      "id": "M4-01",
+      "module": "M4",
+      "title": "全結合層と畳み込み層",
+      "minutes": 45,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>画像に全結合層をそのまま使うと何が困るかを、<strong>パラメータ数</strong>の観点で説明できる</li><li>畳み込み層が何を共有することでパラメータを減らしているか言える</li><li>ストライド・パディングが出力サイズにどう影響するか説明できる</li></ul>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>M3では層の中身を扱ったが、そこで想定していたのは<strong>全結合層</strong>——前の層のすべての素子と次の層のすべての素子がつながった構造である。</p>\n<p>この講から M4 では、<strong>用途に合わせた層の形</strong>を見ていく。最初は画像である。画像に全結合層をそのまま使うと、すぐに壁にぶつかる。</p>\n<h4>すべてつなぐと数が爆発する</h4>\n<p><strong>全結合層</strong>は、前の層の全素子と次の層の全素子を<strong>すべて結ぶ</strong>。各結合には<strong>重み</strong>が1つずつ必要になる。</p>\n<p>パラメータ数は「前の層の素子数 × 次の層の素子数」で決まる。前の層が1000、次の層が1000なら100万個である。</p>\n<p>画像で考えると深刻さが分かる。カラー画像が 200×200 画素なら、入力は 200×200×3 = <strong>12万</strong>になる。次の層が1000素子なら、<strong>それだけで1億2000万個</strong>の重みが要る。</p>\n<p>学習できないうえに、もう1つ問題がある。全結合層は入力を<strong>1列に並べ直して</strong>扱うため、<strong>「隣の画素と近い」という位置関係の情報が失われる</strong>。画像では、隣り合う画素が関係を持っていることが本質的に重要なのに、である。</p>\n<p>なお全結合層で行っている「重みを掛けて足す」計算は<strong>線形関数</strong>であり、これだけでは非線形性がないことは M3-02 で見たとおりである。</p>\n<h4>一部だけ見て、使い回す</h4>\n<p><strong>畳み込み層</strong>の発想は2つある。</p>\n<p>1つ目は、<strong>近くの画素だけを見る</strong>こと。画像全体を一度に見るのではなく、小さな窓（たとえば3×3）を当てて、その範囲だけで計算する。この窓を<strong>フィルタ</strong>または<strong>カーネル</strong>という。</p>\n<p>2つ目は、<strong>同じフィルタを画像全体で使い回す</strong>こと。窓を少しずつずらしながら、<strong>同じ重みで</strong>画像全体を走査する。これを<strong>畳み込み操作</strong>という。</p>\n<p>この2つでパラメータが激減する。3×3のフィルタなら重みは9個（＋バイアス）で、画像が200×200でも1000×1000でも<strong>重みの数は変わらない</strong>。</p>\n<p>なぜ使い回せるのか。<strong>「エッジを検出する」という処理は、画像のどこでやっても同じ</strong>だからである。左上で有効な検出器は、右下でも有効である。この性質を利用して重みを共有している。</p>\n<p>フィルタを適用した結果を並べたものが<strong>特徴マップ</strong>である。フィルタを複数用意すれば、「縦のエッジ」「横のエッジ」「特定の色」といった<strong>異なる特徴のマップが複数枚</strong>得られる。</p>\n<p>この畳み込み層を中心に構成したネットワークが<strong>畳み込みニューラルネットワーク（CNN）</strong> である。M1-05 で見たネオコグニトロンが原型にあたる。</p>\n<h4>窓の動かし方を決める</h4>\n<p>畳み込みには、動かし方を決める設定がいくつかある。</p>\n<p><strong>ストライド</strong>は、<strong>窓をずらす幅</strong>である。1なら1画素ずつ、2なら2画素ずつずらす。<strong>ストライドを大きくすると出力は小さくなる</strong>（間引かれるため）。</p>\n<p><strong>パディング</strong>は、<strong>画像の周囲に余白（多くは0）を足す</strong>ことである。何もしないと、窓を当てられる位置が内側に限られるため、畳み込むたびに出力が少しずつ小さくなる。また、端の画素は窓に含まれる回数が中央より少なく、<strong>扱いが軽くなってしまう</strong>。</p>\n<p>周囲に余白を足せば、<strong>出力サイズを保てる</strong>うえ、端の画素も十分に使われる。</p>\n<p><strong>ストライド＝出力を小さくする方向／パディング＝出力を保つ方向</strong>、と対で覚えると混乱しない。</p>\n<h4>効率化した畳み込み</h4>\n<p>畳み込みにも改良版がある。名前と狙いを押さえる。</p>\n<ul><li><strong>Dilated Convolution</strong>（＝<strong>Atrous Convolution</strong>、同じものの別名）： フィルタの要素の<strong>間隔を空けて</strong>適用する。 パラメータを増やさずに<strong>広い範囲を見られる</strong>ようになる</li><li><strong>Depthwise Separable Convolution</strong>： 畳み込みを「空間方向」と「チャネル方向」の<strong>2段階に分解する</strong>。 計算量を大幅に削減でき、スマートフォン向けの軽量モデルで使われる</li></ul>\n<p><strong>Dilated と Atrous は同じもの。</strong> 別々の手法として問われたら注意する。</p>\n<h4>通して読むと</h4>\n<p>この講は「<strong>画像の性質を構造に組み込む</strong>」という話である。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>画像の性質</th><th>対応する構造</th></tr></thead><tbody><tr><td data-label=\"画像の性質\">近くの画素どうしが関係する</td><td data-label=\"対応する構造\">小さな窓（フィルタ）で局所を見る</td></tr><tr><td data-label=\"画像の性質\">同じ特徴はどこにあっても同じ</td><td data-label=\"対応する構造\">フィルタを<strong>全体で使い回す</strong>（重み共有）</td></tr><tr><td data-label=\"画像の性質\">見たい特徴は複数ある</td><td data-label=\"対応する構造\">フィルタを複数用意し、特徴マップを複数枚作る</td></tr></tbody></table></div>\n<p>全結合層が「何も仮定しない」代わりにパラメータが爆発するのに対し、畳み込み層は<strong>画像についての仮定を構造に埋め込むことで、少ないパラメータで済ませている</strong>。</p>\n<p>M1-01 からの軸で言えば、<strong>人が与えるものが「重み」から「構造の仮定」に変わった</strong>とも読める。</p>"
+        },
+        {
+          "heading": "比較表",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th></th><th>全結合層</th><th>畳み込み層</th></tr></thead><tbody><tr><td data-label=\"\">つながり方</td><td data-label=\"全結合層\">前の層の<strong>すべて</strong>と結ぶ</td><td data-label=\"畳み込み層\"><strong>近くの範囲だけ</strong>と結ぶ</td></tr><tr><td data-label=\"\">重み</td><td data-label=\"全結合層\">結合ごとに個別</td><td data-label=\"畳み込み層\"><strong>フィルタを全体で共有</strong></td></tr><tr><td data-label=\"\">パラメータ数</td><td data-label=\"全結合層\">素子数の積。<strong>巨大</strong></td><td data-label=\"畳み込み層\">フィルタのサイズ分。<strong>小さい</strong></td></tr><tr><td data-label=\"\">位置関係</td><td data-label=\"全結合層\">失われる</td><td data-label=\"畳み込み層\"><strong>保たれる</strong></td></tr><tr><td data-label=\"\">主な用途</td><td data-label=\"全結合層\">最終的な判定など</td><td data-label=\"畳み込み層\">画像などの特徴抽出</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">全結合層</td><td data-label=\"ひとことで\">前後の層をすべて結ぶ層</td><td data-label=\"試験ではこう問われる\"><strong>パラメータ数が爆発する</strong>点</td></tr><tr><td data-label=\"用語\">重み</td><td data-label=\"ひとことで\">各結合の強さを表す値</td><td data-label=\"試験ではこう問われる\">学習で決まるもの</td></tr><tr><td data-label=\"用語\">線形関数</td><td data-label=\"ひとことで\">重みを掛けて足す計算</td><td data-label=\"試験ではこう問われる\">活性化関数が必要な理由（M3-02）</td></tr><tr><td data-label=\"用語\">畳み込み層</td><td data-label=\"ひとことで\">小さな窓を使い回して特徴を取り出す層</td><td data-label=\"試験ではこう問われる\">重み共有でパラメータを減らす点</td></tr><tr><td data-label=\"用語\">フィルタ／カーネル</td><td data-label=\"ひとことで\">畳み込みに使う小さな窓</td><td data-label=\"試験ではこう問われる\">同じものの別名</td></tr><tr><td data-label=\"用語\">畳み込み操作</td><td data-label=\"ひとことで\">窓をずらしながら適用していく操作</td><td data-label=\"試験ではこう問われる\">—</td></tr><tr><td data-label=\"用語\">特徴マップ</td><td data-label=\"ひとことで\">フィルタを適用した結果</td><td data-label=\"試験ではこう問われる\">複数のフィルタで複数枚できる</td></tr><tr><td data-label=\"用語\">CNN</td><td data-label=\"ひとことで\">畳み込み層を中心にしたネットワーク</td><td data-label=\"試験ではこう問われる\">ネオコグニトロンが原型（M1-05）</td></tr><tr><td data-label=\"用語\">ストライド</td><td data-label=\"ひとことで\">窓をずらす幅</td><td data-label=\"試験ではこう問われる\"><strong>大きくすると出力が小さくなる</strong></td></tr><tr><td data-label=\"用語\">パディング</td><td data-label=\"ひとことで\">画像の周囲に余白を足す</td><td data-label=\"試験ではこう問われる\"><strong>出力サイズを保つ</strong>／端の画素を活かす</td></tr><tr><td data-label=\"用語\">Dilated Convolution</td><td data-label=\"ひとことで\">フィルタの間隔を空けて広い範囲を見る</td><td data-label=\"試験ではこう問われる\"><strong>Atrous Convolution と同じもの</strong></td></tr><tr><td data-label=\"用語\">Atrous Convolution</td><td data-label=\"ひとことで\">Dilated Convolution の別名</td><td data-label=\"試験ではこう問われる\">同上</td></tr><tr><td data-label=\"用語\">Depthwise Separable Convolution</td><td data-label=\"ひとことで\">空間方向とチャネル方向に分解する</td><td data-label=\"試験ではこう問われる\"><strong>計算量削減</strong>。軽量モデルで使う</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>パラメータ数がモデルサイズを決める</strong> — 全結合層が多いモデルは重くなる。 軽量化（M5-06）で最初に削られるのも全結合層であることが多い</li><li><strong>重み共有という発想</strong> — 「同じ処理をどこでも使い回す」という考え方は、 Transformer の Attention（M4-03）でも形を変えて現れる</li><li><strong>Depthwise Separable Convolution</strong> — MobileNet などスマートフォン向けモデルの中核。 エッジAI（M5-06）の文脈で出てくる</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>全結合層</strong>＝すべて結ぶ。パラメータが巨大</td><td data-label=\"と、これ\"><strong>畳み込み層</strong>＝局所を見て重みを共有</td></tr><tr><td data-label=\"これ\"><strong>ストライド</strong>＝ずらす幅。出力が<strong>小さくなる</strong></td><td data-label=\"と、これ\"><strong>パディング</strong>＝余白を足す。出力を<strong>保つ</strong></td></tr><tr><td data-label=\"これ\"><strong>フィルタ／カーネル</strong>＝畳み込みの窓</td><td data-label=\"と、これ\"><strong>特徴マップ</strong>＝フィルタを適用した<strong>結果</strong></td></tr><tr><td data-label=\"これ\"><strong>Dilated Convolution</strong>＝<strong>Atrous と同じもの</strong></td><td data-label=\"と、これ\">Depthwise Separable＝2段階に分解して軽量化</td></tr><tr><td data-label=\"これ\">全結合層＝位置関係が<strong>失われる</strong></td><td data-label=\"と、これ\">畳み込み層＝位置関係が<strong>保たれる</strong></td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>構造の一般的な説明</strong>が中心で、年号・人名を含まない。<code>docs/10-authoring-rules.md</code> の方針により、一般的な定義には個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技17・技18）に準拠している。</p>\n<p><strong>シラバス改訂の注意</strong>：v1.1 で技18から「可変サイズのデータへの適用」「疎結合」が削除されている。本講ではこれらの語は扱っていない。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>Dilated Convolution と Atrous Convolution が同一のものである</strong>という点は 一般的な理解として書いたが、<strong>出典で確認していない</strong>。 シラバスには両方が別々のキーワードとして並んでいるため、 <strong>別物として問われる可能性を排除できていない。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>出力サイズの計算式</strong>（入力サイズ・フィルタサイズ・ストライド・パディングから求める） まで問われるかは確認できていない。<strong>計算は深追いしない方針</strong> （<code>docs/01-learner-profile.md</code>）により、大小関係の理解にとどめている。</li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li>全結合層は<strong>パラメータが爆発</strong>し、<strong>位置関係も失われる</strong>。画像には向かない</li><li>畳み込み層は<strong>フィルタを全体で使い回す</strong>（重み共有）ことでパラメータを激減させた</li><li><strong>ストライド＝出力を小さくする／パディング＝出力を保つ</strong>。Dilated と Atrous は同じもの</li></ul>"
+        }
+      ]
     }
   ]
 };
