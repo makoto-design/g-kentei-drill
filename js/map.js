@@ -128,7 +128,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能とは",
       "hasText": true,
-      "questions": 6
+      "questions": 8
     },
     {
       "id": "M1-03",
