@@ -465,8 +465,8 @@ window.MAP_DATA = {
         "法13"
       ],
       "area": "AI倫理・AIガバナンス",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 11
     },
     {
       "id": "M8-03",
