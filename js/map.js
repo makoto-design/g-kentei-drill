@@ -345,8 +345,8 @@ window.MAP_DATA = {
         "技30"
       ],
       "area": "ディープラーニングの応用例",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 7
     },
     {
       "id": "M5-05",

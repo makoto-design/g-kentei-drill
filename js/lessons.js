@@ -801,6 +801,74 @@ window.LESSON_DATA = {
           "html": "<ul><li>流れは <strong>A-D変換（PCM）→ FFT → スペクトル包絡・フォルマント → メル尺度・MFCC → 文字化</strong></li><li><strong>フォルマント＝スペクトル包絡の山、フォルマント周波数＝その位置</strong>。母音の違いを決める</li><li><strong>CTC は区間と文字の対応づけを与えなくても学習できる</strong>ようにした。古典的な対処は隠れマルコフモデル</li></ul>"
         }
       ]
+    },
+    {
+      "id": "M5-04",
+      "module": "M5",
+      "title": "深層強化学習とデータ生成",
+      "minutes": 50,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>DQN が Q学習の何を変えたのかを説明できる</li><li>GAN の2つのネットワークがそれぞれ何をしているか言える</li><li>GAN と拡散モデルの生成の仕方の違いを説明できる</li></ul>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>この講は<strong>2つの中項目</strong>を扱う。一見別々だが、どちらも<strong>M2で見た枠組みに、ディープラーニングを組み合わせたもの</strong>である。</p>\n<ul><li>強化学習（M2-03）＋ DL → <strong>深層強化学習</strong></li><li>オートエンコーダ・VAE（M4-04）の先 → <strong>データ生成</strong></li></ul>\n<p>前半と後半で切り替わるので、区切りを意識して読む。</p>\n<p>---</p>"
+        },
+        {
+          "heading": "Q値をニューラルネットワークで近似する",
+          "html": "<p>M2-03 の Q学習には限界があった。Q値を<strong>状態と行動の組ごとに表で持つ</strong>ため、状態の数が多いと表が巨大になる。ゲーム画面のような状態は事実上無限にあり、表では扱えない。</p>\n<p>そこで、<strong>Q値をニューラルネットワークで近似する</strong>。これが <strong>DQN</strong>（Deep Q-Network）である。画面のピクセルを入力し、各行動のQ値を出力する。DeepMind が Atari のゲームを画面だけから学習させたことで知られる。</p>\n<p><strong>DQN ＝ Q学習の「表」をニューラルネットワークに置き換えたもの。</strong> ここが要点になる。</p>"
+        },
+        {
+          "heading": "DQN の改良",
+          "html": "<p>DQN には複数の改良が提案された。<strong>名前と「何を改良したか」の一言</strong>が言えれば足りる。</p>\n<ul><li><strong>ダブルDQN</strong>：Q値の<strong>過大評価</strong>を抑える</li><li><strong>デュエリングネットワーク</strong>：<strong>状態の価値</strong>と<strong>行動の優位性</strong>を分けて学習する</li><li><strong>ノイジーネットワーク</strong>：探索のためのランダム性を、<strong>ネットワークの中に組み込む</strong></li><li><strong>Rainbow</strong>：これらを含む<strong>複数の改良を統合</strong>したもの</li><li><strong>APE-X</strong>：経験の収集を<strong>並列化</strong>して大規模化した</li><li><strong>Agent57</strong>：Atari の<strong>57ゲームすべて</strong>で人間を上回った</li></ul>"
+        },
+        {
+          "heading": "方策ベース系の発展",
+          "html": "<p>M2-03 の方策ベース側にも発展がある。</p>\n<ul><li><strong>A3C</strong>：複数の環境を<strong>並列に動かして</strong>学習する</li><li><strong>PPO</strong>：方策の更新幅を<strong>制限して安定させる</strong>。実務でよく使われる</li></ul>\n<p><strong>AlphaStar</strong> は、ゲーム『StarCraft II』でプロ級に到達したシステムである。M1-05 の AlphaGo に続く成果として位置づけられる。</p>\n<p><strong>OpenAI Five</strong> は『Dota 2』でプロチームに勝利したシステムで、複数のエージェントが協調する<strong>マルチエージェント強化学習（MARL）</strong> の例にあたる。</p>"
+        },
+        {
+          "heading": "現実世界で使うための課題",
+          "html": "<p>強化学習を現実に適用するには、固有の問題がある。</p>\n<p><strong>試行錯誤のコストが高すぎる</strong>。ロボットを実機で何万回も失敗させるわけにはいかない。</p>\n<p>そこで<strong>シミュレータで学習させ、実機に移す</strong>。これを <strong>sim2real</strong> という。だがシミュレータと現実には必ずずれがあり、そのままでは動かない。</p>\n<p>対策が<strong>ドメインランダマイゼーション</strong>である。シミュレータの条件（摩擦、色、照明など）を<strong>わざとランダムに変えて学習させる</strong>。「どんな条件でも動く」方策が学べれば、現実もその一種として扱える。</p>\n<p><strong>残差強化学習</strong>は、既存の制御則をベースにして、<strong>その差分だけを強化学習で学ぶ</strong>。ゼロから学ぶより安全で速い。</p>\n<p><strong>オフライン強化学習</strong>は、<strong>環境と対話せず、記録済みのデータだけで学習する</strong>。実環境で試せない場面で使える。</p>\n<p><strong>状態表現学習</strong>は、生の観測（画像など）から<strong>学習に使いやすい状態の表現を獲得する</strong>ことを指す。</p>\n<p><strong>連続値制御</strong>は、行動が連続値である問題（M2-03 の方策ベースが必要な場面）を指す。</p>\n<p>そして<strong>報酬成形</strong>は、<strong>報酬の与え方を設計して学習を導く</strong>ことである。最終的な成否だけでは報酬が遠すぎて学習が進まないため、途中の望ましい行動にも報酬を与える。<strong>ただし設計を誤ると意図しない振る舞いを学ぶ</strong>。</p>"
+        },
+        {
+          "heading": "人間の評価を報酬にする",
+          "html": "<p><strong>RLHF</strong>（人間のフィードバックによる強化学習）は、<strong>人間による評価を報酬として使う</strong>手法である。</p>\n<p>「どちらの回答が good か」を人間が比較し、その判断を学習した報酬モデルを作る。そのモデルの評価を報酬として、方策（＝生成モデル）を強化学習で調整する。</p>\n<p><strong>LLMを人の意図に沿わせる</strong>ために使われており、M2-03 の枠組みがそのまま生成AIの世界で使われている例になる。</p>\n<p>---</p>"
+        },
+        {
+          "heading": "2つを競わせる",
+          "html": "<p><strong>敵対的生成ネットワーク（GAN）</strong> の構造は独特である。<strong>2つのネットワークを競わせる</strong>。</p>\n<ul><li><strong>生成器</strong>：ノイズから<strong>偽物のデータを作る</strong></li><li><strong>識別器</strong>：与えられたデータが<strong>本物か偽物かを判定する</strong></li></ul>\n<p>生成器は識別器を騙そうとし、識別器は見破ろうとする。互いに強くなり合い、最終的に<strong>本物と区別がつかないデータが生成される</strong>。</p>\n<blockquote><strong>注意</strong>：シラバス改訂で「ジェネレータ」「ディスクリミネータ」という カタカナのキーワードは<strong>削除</strong>されている（<code>docs/05-syllabus.md</code> の削除語一覧）。 仕組みの理解は必要だが、<strong>用語としての優先度は下がっている</strong>。</blockquote>\n<p>GAN の発展形がいくつかある。</p>\n<ul><li><strong>DCGAN</strong>：GANに<strong>畳み込み層</strong>を導入し、画像生成の質を大きく上げた</li><li><strong>Pix2Pix</strong>：<strong>対になった画像</strong>（線画と着色画など）から変換を学ぶ</li><li><strong>CycleGAN</strong>：<strong>対になっていない画像</strong>の集合どうしで変換を学ぶ。 「馬の写真の集合」と「シマウマの写真の集合」があれば、対応づけがなくても変換できる</li></ul>\n<p><strong>Pix2Pix＝対あり／CycleGAN＝対なし。</strong> ここが問われる。</p>"
+        },
+        {
+          "heading": "ノイズから削り出す",
+          "html": "<p>近年の主流が <strong>Diffusion Model（拡散モデル）</strong> である。</p>\n<p>考え方が面白い。まず<strong>きれいな画像に少しずつノイズを加えていき</strong>、最終的に完全なノイズにする過程を考える。モデルには、<strong>その逆——ノイズを少しずつ取り除く過程</strong>を学習させる。</p>\n<p>生成するときは、<strong>完全なノイズから始めて、少しずつノイズを除いていく</strong>。彫刻を削り出すように画像が現れる。</p>\n<p>GAN との違いは明確である。</p>\n<div class=\"tablewrap\"><table><thead><tr><th></th><th>GAN</th><th>Diffusion Model</th></tr></thead><tbody><tr><td data-label=\"\">仕組み</td><td data-label=\"GAN\">2つのネットワークを<strong>競わせる</strong></td><td data-label=\"Diffusion Model\">ノイズを<strong>段階的に除去する</strong></td></tr><tr><td data-label=\"\">学習</td><td data-label=\"GAN\">不安定になりやすい</td><td data-label=\"Diffusion Model\">比較的安定</td></tr><tr><td data-label=\"\">生成速度</td><td data-label=\"GAN\">速い（1回で生成）</td><td data-label=\"Diffusion Model\">遅い（何度も繰り返す）</td></tr></tbody></table></div>\n<p><strong>NeRF</strong> は少し毛色が違う。<strong>複数の視点から撮った画像から、3次元の見え方を学習する</strong>手法である。学習後は、撮影していない角度からの見え方も生成できる。</p>\n<p>生成の対象は画像に限らない。<strong>画像生成</strong>、<strong>音声生成</strong>、<strong>文章生成</strong>がシラバスに挙げられている。文章生成はいまのLLMそのものである。</p>"
+        },
+        {
+          "heading": "通して読むと",
+          "html": "<p>この講は、<strong>M2の枠組みにDLを載せると何ができるか</strong>の実例集である。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>元の枠組み</th><th>DLを載せると</th><th>代表</th></tr></thead><tbody><tr><td data-label=\"元の枠組み\">Q学習（表）</td><td data-label=\"DLを載せると\">Q値を近似できる</td><td data-label=\"代表\"><strong>DQN</strong></td></tr><tr><td data-label=\"元の枠組み\">方策勾配法</td><td data-label=\"DLを載せると\">複雑な方策を扱える</td><td data-label=\"代表\">A3C、PPO</td></tr><tr><td data-label=\"元の枠組み\">生成（VAE）</td><td data-label=\"DLを載せると\">より高品質な生成</td><td data-label=\"代表\"><strong>GAN</strong>、<strong>拡散モデル</strong></td></tr></tbody></table></div>\n<p>そして <strong>RLHF</strong> は、この2つが合流する点にある。<strong>強化学習の枠組みで、生成モデルを人の意図に沿わせる</strong>。実務で使っているLLMの振る舞いは、ここで決まっている。</p>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">DQN</td><td data-label=\"ひとことで\">Q値をニューラルネットワークで近似する</td><td data-label=\"試験ではこう問われる\"><strong>Q学習の表を置き換えた</strong>点</td></tr><tr><td data-label=\"用語\">ダブルDQN</td><td data-label=\"ひとことで\">Q値の過大評価を抑える</td><td data-label=\"試験ではこう問われる\">DQNの改良</td></tr><tr><td data-label=\"用語\">デュエリングネットワーク</td><td data-label=\"ひとことで\">状態価値と行動の優位性を分ける</td><td data-label=\"試験ではこう問われる\">DQNの改良</td></tr><tr><td data-label=\"用語\">ノイジーネットワーク</td><td data-label=\"ひとことで\">探索のランダム性をネットワークに組み込む</td><td data-label=\"試験ではこう問われる\">DQNの改良</td></tr><tr><td data-label=\"用語\">Rainbow</td><td data-label=\"ひとことで\">複数の改良を統合したもの</td><td data-label=\"試験ではこう問われる\">DQNの改良の集大成</td></tr><tr><td data-label=\"用語\">APE-X</td><td data-label=\"ひとことで\">経験収集を並列化した</td><td data-label=\"試験ではこう問われる\">大規模化の工夫</td></tr><tr><td data-label=\"用語\">Agent57</td><td data-label=\"ひとことで\">Atari 57ゲームで人間を上回った</td><td data-label=\"試験ではこう問われる\">到達点として</td></tr><tr><td data-label=\"用語\">A3C</td><td data-label=\"ひとことで\">複数環境を並列に動かして学習する</td><td data-label=\"試験ではこう問われる\">方策ベース系</td></tr><tr><td data-label=\"用語\">PPO</td><td data-label=\"ひとことで\">方策の更新幅を制限して安定させる</td><td data-label=\"試験ではこう問われる\">実務でよく使われる</td></tr><tr><td data-label=\"用語\">アルファスター（AlphaStar）</td><td data-label=\"ひとことで\">StarCraft II でプロ級に到達</td><td data-label=\"試験ではこう問われる\">AlphaGoに続く成果</td></tr><tr><td data-label=\"用語\">OpenAI Five</td><td data-label=\"ひとことで\">Dota 2 でプロチームに勝利</td><td data-label=\"試験ではこう問われる\">マルチエージェントの例</td></tr><tr><td data-label=\"用語\">マルチエージェント強化学習（MARL）</td><td data-label=\"ひとことで\">複数のエージェントが同時に学習する</td><td data-label=\"試験ではこう問われる\">OpenAI Five</td></tr><tr><td data-label=\"用語\">sim2real</td><td data-label=\"ひとことで\">シミュレータで学び実機へ移す</td><td data-label=\"試験ではこう問われる\">現実適用の課題</td></tr><tr><td data-label=\"用語\">ドメインランダマイゼーション</td><td data-label=\"ひとことで\">シミュレータの条件をわざと変えて学習する</td><td data-label=\"試験ではこう問われる\">sim2real の対策</td></tr><tr><td data-label=\"用語\">残差強化学習</td><td data-label=\"ひとことで\">既存の制御則との<strong>差分</strong>を学ぶ</td><td data-label=\"試験ではこう問われる\">ゼロから学ぶより安全</td></tr><tr><td data-label=\"用語\">オフライン強化学習</td><td data-label=\"ひとことで\">環境と対話せず記録データだけで学ぶ</td><td data-label=\"試験ではこう問われる\">実環境で試せない場合</td></tr><tr><td data-label=\"用語\">状態表現学習</td><td data-label=\"ひとことで\">生の観測から使いやすい状態表現を得る</td><td data-label=\"試験ではこう問われる\">前処理にあたる</td></tr><tr><td data-label=\"用語\">連続値制御</td><td data-label=\"ひとことで\">行動が連続値である問題</td><td data-label=\"試験ではこう問われる\">方策ベースが必要（M2-03）</td></tr><tr><td data-label=\"用語\">報酬成形</td><td data-label=\"ひとことで\">報酬の与え方を設計して学習を導く</td><td data-label=\"試験ではこう問われる\"><strong>設計を誤ると意図しない振る舞い</strong>を学ぶ</td></tr><tr><td data-label=\"用語\">RLHF</td><td data-label=\"ひとことで\">人間の評価を報酬として学習する</td><td data-label=\"試験ではこう問われる\"><strong>LLMを人の意図に沿わせる</strong>手法</td></tr><tr><td data-label=\"用語\">敵対的生成ネットワーク（GAN）</td><td data-label=\"ひとことで\">生成器と識別器を競わせる</td><td data-label=\"試験ではこう問われる\">2つのネットワークの役割</td></tr><tr><td data-label=\"用語\">DCGAN</td><td data-label=\"ひとことで\">GANに畳み込み層を導入した</td><td data-label=\"試験ではこう問われる\">画像生成の質を上げた</td></tr><tr><td data-label=\"用語\">Pix2Pix</td><td data-label=\"ひとことで\"><strong>対になった</strong>画像から変換を学ぶ</td><td data-label=\"試験ではこう問われる\">CycleGANとの違い</td></tr><tr><td data-label=\"用語\">CycleGAN</td><td data-label=\"ひとことで\"><strong>対になっていない</strong>画像集合から変換を学ぶ</td><td data-label=\"試験ではこう問われる\">Pix2Pixとの違い</td></tr><tr><td data-label=\"用語\">Diffusion Model</td><td data-label=\"ひとことで\">ノイズを段階的に除去して生成する</td><td data-label=\"試験ではこう問われる\">GANとの仕組みの違い</td></tr><tr><td data-label=\"用語\">NeRF</td><td data-label=\"ひとことで\">複数視点の画像から3次元の見え方を学ぶ</td><td data-label=\"試験ではこう問われる\">未撮影の角度も生成できる</td></tr><tr><td data-label=\"用語\">画像生成 / 音声生成 / 文章生成</td><td data-label=\"ひとことで\">生成の対象</td><td data-label=\"試験ではこう問われる\">文章生成はLLM</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>RLHF が LLM の振る舞いを決めている</strong> — 「丁寧に答える」「危険な要求を断る」 といった性質は、事前学習ではなく RLHF の段階で入っている</li><li><strong>報酬成形の失敗</strong> — 指標を決めると、そこに最適化される。 「クリック率を報酬にしたら煽り記事だらけになる」はM2-03 でも触れた構図</li><li><strong>画像生成が拡散モデルに移った理由</strong> — GANは学習が不安定で崩れやすい。 拡散モデルは遅いが安定して高品質。生成の速度と品質のトレードオフがある</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>DQN</strong>＝Q学習の表をNNに置き換えた</td><td data-label=\"と、これ\">Q学習＝表でQ値を持つ（M2-03）</td></tr><tr><td data-label=\"これ\"><strong>生成器</strong>＝偽物を作る</td><td data-label=\"と、これ\"><strong>識別器</strong>＝本物か偽物かを判定する</td></tr><tr><td data-label=\"これ\"><strong>Pix2Pix</strong>＝<strong>対になった</strong>画像から学ぶ</td><td data-label=\"と、これ\"><strong>CycleGAN</strong>＝<strong>対になっていない</strong>集合から学ぶ</td></tr><tr><td data-label=\"これ\"><strong>GAN</strong>＝2つを競わせる。速いが不安定</td><td data-label=\"と、これ\"><strong>Diffusion Model</strong>＝ノイズを除去。遅いが安定</td></tr><tr><td data-label=\"これ\"><strong>sim2real</strong>＝シミュレータから実機へ</td><td data-label=\"と、これ\"><strong>ドメインランダマイゼーション</strong>＝その対策</td></tr><tr><td data-label=\"これ\"><strong>RLHF</strong>＝人間の評価を報酬にする</td><td data-label=\"と、これ\">報酬成形＝報酬の与え方を設計する</td></tr><tr><td data-label=\"これ\"><strong>NeRF</strong>＝複数視点から3次元の見え方を学ぶ</td><td data-label=\"と、これ\">他の生成モデル＝2次元の画像を作る</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>手法の位置づけの説明</strong>が中心である。AlphaGo の事実関係は M1-05 で確認済み。それ以外は<strong>一般的な特徴の説明</strong>にとどめ、<code>docs/10-authoring-rules.md</code> の方針により個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技29・技30）に準拠している。</p>\n<p><strong>シラバス改訂の注意</strong>：Gシラバス2024 で「ジェネレータ」「ディスクリミネータ」が<strong>削除</strong>されている（<code>docs/05-syllabus.md</code> の削除語一覧）。本講では日本語の「生成器」「識別器」で説明し、仕組みの理解を優先した。</p>\n<p><strong>この講の深さについて</strong>：<code>progress/schedule.md</code> の「遅れた場合の削り方」で<strong>DQNの改良手法は名前と位置づけだけ</strong>とする方針を明記している。本講もそれに従っている。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>AlphaStar が StarCraft II でプロ級に到達した</strong>、 <strong>OpenAI Five が Dota 2 でプロチームに勝利した</strong>という記述は 広く知られているが、<strong>出典で確認していない。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>Agent57 が Atari 57ゲームすべてで人間を上回った</strong>という記述も <strong>出典未確認。</strong> 名前の「57」がゲーム数を指すという理解に基づく。</li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>拡散モデルが GAN より生成が遅い</strong>という比較は一般的な理解だが、 <strong>シラバスで速度の比較まで問われるかは確認していない。</strong></li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li><strong>DQN は Q学習の「表」をニューラルネットワークに置き換えた</strong>もの。改良版は名前と狙いまで</li><li><strong>GAN は生成器と識別器を競わせる／拡散モデルはノイズを段階的に除去する</strong></li><li><strong>Pix2Pix＝対あり／CycleGAN＝対なし</strong>。<strong>RLHF は人間の評価を報酬にしてLLMを調整する</strong></li></ul>"
+        }
+      ]
     }
   ]
 };
