@@ -757,6 +757,50 @@ window.LESSON_DATA = {
           "html": "<ul><li><strong>ワンホット＝高次元・疎・意味を表せない／分散表現＝低次元・密・意味の近さを距離で表せる</strong></li><li><strong>CBOW＝周囲から中心／スキップグラム＝中心から周囲</strong>。向きが逆</li><li><strong>word2vec は1単語1ベクトル</strong>。ELMo・BERT は<strong>文脈で表現が変わる</strong>。BERTは双方向</li></ul>"
         }
       ]
+    },
+    {
+      "id": "M5-03",
+      "module": "M5",
+      "title": "音声処理",
+      "minutes": 45,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>音声を数値にするまでの流れ（A-D変換）を順に説明できる</li><li>音韻と音素、スペクトル包絡とフォルマントの関係を言い分けられる</li><li>CTC が何を解決したかを説明できる</li></ul>"
+        },
+        {
+          "heading": "この講の位置づけ",
+          "html": "<p>音声処理は<strong>実務で触れる機会が少なく、用語が耳慣れない</strong>領域である。一方でシラバス上は1中項目を占め、<strong>信号処理の用語がまとまって出てくる</strong>。</p>\n<p>深追いはしない（<code>progress/schedule.md</code> の削り方でも最初に挙げている）。<strong>「何のための処理か」が言えれば足りる</strong>方針で書く。</p>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>音声は<strong>空気の振動</strong>である。そのままでは計算できない。</p>\n<p>この講は「<strong>振動を数値にし、意味のある特徴に変え、文字にする</strong>」という一本の流れとして読める。画像や言語と違い、<strong>前処理の比重が大きい</strong>のが特徴である。</p>\n<h4>波を数値にする</h4>\n<p>まず、マイクが拾ったアナログの波形を数値に変換する。これが <strong>A-D変換</strong>である。2つの操作からなる。</p>\n<ul><li><strong>標本化（サンプリング）</strong>：時間軸を細かく区切り、一定間隔で値を取る</li><li><strong>量子化</strong>：取った値を、決められた段階の数値に丸める</li></ul>\n<p>この方式を <strong>パルス符号変調器（PCM）</strong> という。音声ファイルの基本的な形式であり、<strong>A-D変換の代表的な方式</strong>として押さえる。</p>\n<h4>周波数の成分に分ける</h4>\n<p>数値になった波形は、時間ごとの振幅の並びでしかない。だが人が音を聞き分けるときに使っているのは<strong>周波数の成分</strong>である。</p>\n<p>そこで、波形を<strong>どの周波数の音がどれだけ含まれるか</strong>に分解する。この計算を高速に行う手法が <strong>高速フーリエ変換（FFT）</strong> である。</p>\n<p>分解した結果を見ると、細かく波打ったグラフになる。その<strong>大まかな輪郭</strong>を取り出したものが<strong>スペクトル包絡</strong>である。細部のばらつきを取り除き、音の「形」だけを残す。</p>\n<p>スペクトル包絡に現れる<strong>山（ピーク）</strong> が<strong>フォルマント</strong>である。そして、そのピークの位置（周波数）を<strong>フォルマント周波数</strong>という。</p>\n<p>このフォルマントが重要なのは、<strong>母音の違いを決めている</strong>からである。「あ」と「い」の違いは、フォルマント周波数のパターンの違いとして現れる。</p>\n<p><strong>スペクトル包絡＝輪郭／フォルマント＝その山／フォルマント周波数＝山の位置。</strong>入れ子の関係で覚える。</p>\n<h4>人の聞こえ方に合わせる</h4>\n<p>人間の耳は、周波数を均等に感じ取らない。低い音の違いには敏感だが、高い音の違いには鈍い。</p>\n<p>この<strong>人間の感覚に合わせた周波数の尺度</strong>が<strong>メル尺度</strong>である。</p>\n<p>そしてメル尺度を使って音声の特徴を数値化したものが<strong>メル周波数ケプストラム係数（MFCC）</strong> である。<strong>音声認識の特徴量として長く標準的に使われてきた</strong>。</p>\n<p>M1-01 の言葉でいえば、MFCC は<strong>人が設計した特徴量</strong>である。ディープラーニングの登場後は、波形から直接学習させる方向にも進んでいる。</p>\n<h4>何をするタスクか</h4>\n<p>音声処理のタスクは主に3つある。</p>\n<ul><li><strong>音声認識</strong>：音声を<strong>文字</strong>にする</li><li><strong>音声合成</strong>：文字から<strong>音声</strong>を作る</li><li><strong>話者識別</strong>：<strong>誰が話しているか</strong>を判定する</li></ul>\n<p>加えて、音声から感情を読み取る<strong>感情分析</strong>もある（テキストに対する感情分析と同じ語だが、対象が違う）。</p>\n<p>言語の単位についても用語がある。</p>\n<ul><li><strong>音素</strong>：意味の区別に関わる、言語ごとの最小単位</li><li><strong>音韻</strong>：その言語の話者が「同じ音」と認識するまとまり</li></ul>\n<p><strong>日本語話者が英語の L と R を区別しにくい</strong>のは、日本語ではこの2つが同じ音韻として扱われるためである。</p>\n<h4>時間のずれをどう扱うか</h4>\n<p>音声認識には固有の難しさがある。<strong>音声のどの区間が、どの文字に対応するか</strong>が分からない。</p>\n<p>「あ」と発音する長さは人によって違うし、同じ人でも毎回違う。<strong>入力（音声のフレーム）と出力（文字）の数が一致しない</strong>うえ、どこからどこまでが1文字かの正解データを作るのは非常に手間がかかる。</p>\n<p>古典的な対処が<strong>隠れマルコフモデル（HMM）</strong> である。音声を「状態が確率的に遷移していく過程」として捉え、<strong>時間の伸び縮みを確率で吸収する</strong>。長らく音声認識の中心だった。</p>\n<p>ディープラーニング以降の対処が <strong>CTC</strong>（Connectionist Temporal Classification）である。<strong>どの区間がどの文字かの対応づけを与えなくても学習できる</strong>ようにした。「空白」を許す仕組みを入れ、あり得る対応づけをすべて考慮して学習する。</p>\n<p><strong>CTC が解決したのは「対応づけのラベルが要らなくなった」こと。</strong> ここが要点になる。</p>\n<h4>音声を作る</h4>\n<p><strong>WaveNet</strong> は音声合成のモデルである。<strong>波形そのものを1点ずつ生成する</strong>という方式で、それまでより自然な音声を実現した。M4-01 の Dilated Convolution を使い、長い範囲の文脈を効率的に捉えている。</p>"
+        },
+        {
+          "heading": "通して読むと",
+          "html": "<p>音声処理は<strong>変換の連鎖</strong>として読める。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>段階</th><th>何をするか</th><th>用語</th></tr></thead><tbody><tr><td data-label=\"段階\">1</td><td data-label=\"何をするか\">アナログ波形を数値にする</td><td data-label=\"用語\">A-D変換、PCM</td></tr><tr><td data-label=\"段階\">2</td><td data-label=\"何をするか\">周波数の成分に分ける</td><td data-label=\"用語\">FFT</td></tr><tr><td data-label=\"段階\">3</td><td data-label=\"何をするか\">輪郭を取り出す</td><td data-label=\"用語\">スペクトル包絡、フォルマント</td></tr><tr><td data-label=\"段階\">4</td><td data-label=\"何をするか\">人の聞こえ方に合わせる</td><td data-label=\"用語\">メル尺度、MFCC</td></tr><tr><td data-label=\"段階\">5</td><td data-label=\"何をするか\">文字に対応づける</td><td data-label=\"用語\">HMM、CTC</td></tr></tbody></table></div>\n<p><strong>1〜4はすべて「人が設計した前処理」</strong> である。M1-01 からの軸で読めば、<strong>MFCC は人手による特徴量設計の典型例</strong>であり、ディープラーニングはここも自動化する方向に進んでいる。</p>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">A-D変換</td><td data-label=\"ひとことで\">アナログの波形を数値に変換する</td><td data-label=\"試験ではこう問われる\">標本化と量子化からなる</td></tr><tr><td data-label=\"用語\">パルス符号変調器（PCM）</td><td data-label=\"ひとことで\">A-D変換の代表的な方式</td><td data-label=\"試験ではこう問われる\">A-D変換とセット</td></tr><tr><td data-label=\"用語\">高速フーリエ変換（FFT）</td><td data-label=\"ひとことで\">波形を周波数の成分に分解する</td><td data-label=\"試験ではこう問われる\">何のための計算かを問う</td></tr><tr><td data-label=\"用語\">スペクトル包絡</td><td data-label=\"ひとことで\">周波数分解した結果の<strong>大まかな輪郭</strong></td><td data-label=\"試験ではこう問われる\">フォルマントとの関係</td></tr><tr><td data-label=\"用語\">フォルマント</td><td data-label=\"ひとことで\">スペクトル包絡に現れる<strong>山（ピーク）</strong></td><td data-label=\"試験ではこう問われる\">母音の違いを決める</td></tr><tr><td data-label=\"用語\">フォルマント周波数</td><td data-label=\"ひとことで\">その山の<strong>位置（周波数）</strong></td><td data-label=\"試験ではこう問われる\">フォルマントとの区別</td></tr><tr><td data-label=\"用語\">メル尺度</td><td data-label=\"ひとことで\">人間の聴覚に合わせた周波数の尺度</td><td data-label=\"試験ではこう問われる\">MFCCの前提</td></tr><tr><td data-label=\"用語\">MFCC</td><td data-label=\"ひとことで\">メル尺度を使った音声の特徴量</td><td data-label=\"試験ではこう問われる\"><strong>音声認識の標準的な特徴量</strong>だった</td></tr><tr><td data-label=\"用語\">音素</td><td data-label=\"ひとことで\">意味の区別に関わる最小単位</td><td data-label=\"試験ではこう問われる\">音韻との区別</td></tr><tr><td data-label=\"用語\">音韻</td><td data-label=\"ひとことで\">話者が同じ音と認識するまとまり</td><td data-label=\"試験ではこう問われる\">LとRの例</td></tr><tr><td data-label=\"用語\">音声認識</td><td data-label=\"ひとことで\">音声を文字にする</td><td data-label=\"試験ではこう問われる\">タスク名</td></tr><tr><td data-label=\"用語\">音声合成</td><td data-label=\"ひとことで\">文字から音声を作る</td><td data-label=\"試験ではこう問われる\">タスク名</td></tr><tr><td data-label=\"用語\">話者識別</td><td data-label=\"ひとことで\">誰が話しているかを判定する</td><td data-label=\"試験ではこう問われる\">タスク名</td></tr><tr><td data-label=\"用語\">感情分析</td><td data-label=\"ひとことで\">感情を読み取る</td><td data-label=\"試験ではこう問われる\">テキストにも同じ語がある</td></tr><tr><td data-label=\"用語\">隠れマルコフモデル</td><td data-label=\"ひとことで\">状態遷移の確率で時間の伸縮を扱う</td><td data-label=\"試験ではこう問われる\">古典的な音声認識の中心</td></tr><tr><td data-label=\"用語\">CTC</td><td data-label=\"ひとことで\">区間と文字の<strong>対応づけなしで学習できる</strong></td><td data-label=\"試験ではこう問われる\">何を解決したかが要点</td></tr><tr><td data-label=\"用語\">WaveNet</td><td data-label=\"ひとことで\">波形を1点ずつ生成する音声合成モデル</td><td data-label=\"試験ではこう問われる\">Dilated Convolution を使う</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>音声入力の精度が環境で変わる理由</strong> — 前処理が周波数成分に依存しているため、 雑音が混じると特徴量そのものが崩れる</li><li><strong>「人が設計した特徴量」の典型</strong> — MFCC は職人技の結晶だが、 ディープラーニングは波形から直接学ぶ方向へ進んだ。M1-01 の軸そのもの</li><li><strong>CTC の発想</strong> — 「正確な対応づけがなくても学習させる」という考え方は、 ラベル付けコストを下げる工夫として他分野にも通じる</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>スペクトル包絡</strong>＝周波数分解の<strong>輪郭</strong></td><td data-label=\"と、これ\"><strong>フォルマント</strong>＝その輪郭に現れる<strong>山</strong></td></tr><tr><td data-label=\"これ\"><strong>フォルマント</strong>＝山そのもの</td><td data-label=\"と、これ\"><strong>フォルマント周波数</strong>＝山の<strong>位置</strong></td></tr><tr><td data-label=\"これ\"><strong>音素</strong>＝意味を区別する最小単位</td><td data-label=\"と、これ\"><strong>音韻</strong>＝話者が同じと認識するまとまり</td></tr><tr><td data-label=\"これ\"><strong>メル尺度</strong>＝人の聴覚に合わせた尺度</td><td data-label=\"と、これ\"><strong>MFCC</strong>＝それを使った<strong>特徴量</strong></td></tr><tr><td data-label=\"これ\"><strong>隠れマルコフモデル</strong>＝古典的な時間の扱い</td><td data-label=\"と、これ\"><strong>CTC</strong>＝対応づけなしで学習できる</td></tr><tr><td data-label=\"これ\"><strong>音声認識</strong>＝音声→文字</td><td data-label=\"と、これ\"><strong>音声合成</strong>＝文字→音声</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>信号処理の一般的な用語の説明</strong>が中心で、年号・人名を含まない。<code>docs/10-authoring-rules.md</code> の方針により、一般的な定義には個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技28）に準拠している。</p>\n<p><strong>シラバス改訂の注意</strong>：v1.2 で技28に「CTC」が<strong>追加</strong>されている（掲載箇所の変更）。本講でも扱っている。</p>\n<p><strong>この講の深さについて</strong>：<code>progress/schedule.md</code> の「遅れた場合の削り方」で<strong>この講を最初に浅くする対象</strong>としている。信号処理の数式には踏み込まず、各用語が「何のための処理か」を言えるまでを範囲としている。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>標本化・量子化という語</strong>は A-D変換の説明として一般的だが、 <strong>シラバスのキーワードには含まれていない</strong>（キーワードは「A-D変換」と「PCM」）。 説明のために使ったが、<strong>用語として問われるかは確認していない。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>MFCC が「長く標準的に使われてきた」</strong>という記述は一般的な理解だが、 <strong>出典で確認していない。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>CTC の正式名称</strong>（Connectionist Temporal Classification）は シラバスには略称のみ記載されている。<strong>正式名称が問われるかは未確認。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>フォルマントが母音の違いを決める</strong>という説明は音声学の基本だが、 <strong>出典で確認していない。</strong></li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li>流れは <strong>A-D変換（PCM）→ FFT → スペクトル包絡・フォルマント → メル尺度・MFCC → 文字化</strong></li><li><strong>フォルマント＝スペクトル包絡の山、フォルマント周波数＝その位置</strong>。母音の違いを決める</li><li><strong>CTC は区間と文字の対応づけを与えなくても学習できる</strong>ようにした。古典的な対処は隠れマルコフモデル</li></ul>"
+        }
+      ]
     }
   ]
 };
