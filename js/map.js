@@ -139,7 +139,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能をめぐる動向",
       "hasText": true,
-      "questions": 6
+      "questions": 7
     },
     {
       "id": "M1-04",
