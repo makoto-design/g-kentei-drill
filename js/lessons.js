@@ -945,6 +945,74 @@ window.LESSON_DATA = {
           "html": "<ul><li><strong>転移学習＝主に出力側／ファインチューニング＝より広く更新</strong>。副作用が<strong>破滅的忘却</strong></li><li><strong>自己教師あり学習は正解を自動生成する</strong>（教師なし学習＝正解が存在しない、とは違う）</li><li><strong>Zero/One/Few-shot は例の数</strong>。<strong>重みを更新しない</strong>点がファインチューニングとの決定的な違い</li></ul>"
         }
       ]
+    },
+    {
+      "id": "M5-06",
+      "module": "M5",
+      "title": "モデルの解釈性と軽量化",
+      "minutes": 45,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>なぜ解釈性が必要になるのかを、<strong>具体的な場面</strong>を挙げて説明できる</li><li>CAM/Grad-CAM と LIME/SHAP の適用範囲の違いを言える</li><li>蒸留・プルーニング・量子化が、それぞれ何を削っているか説明できる</li></ul>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>技術分野の最後の講になる。この2つは<strong>モデルを作った後の話</strong>である。</p>\n<ul><li>精度は出た。だが<strong>なぜそう判断したのか説明できない</strong> → <strong>解釈性</strong></li><li>精度は出た。だが<strong>重すぎて使えない</strong> → <strong>軽量化</strong></li></ul>\n<p>どちらも「<strong>実際に世に出すときに必要になること</strong>」で、M6・M7・M8（社会実装・法律・倫理）への橋渡しになる。</p>\n<p>---</p>"
+        },
+        {
+          "heading": "なぜ説明が必要なのか",
+          "html": "<p>ディープラーニングは、<strong>なぜその判断に至ったかが人には分からない</strong>。これを<strong>ブラックボックス</strong>問題という（M8-02 でも扱う）。</p>\n<p>精度が高ければそれでよい場面もあるが、そうでない場面がある。</p>\n<ul><li><strong>融資の審査</strong>：断られた人に理由を説明する必要がある</li><li><strong>医療診断</strong>：医師が判断根拠を確認せずに従うわけにはいかない</li><li><strong>不良品の検出</strong>：なぜ不良と判定したか分からないと、製造工程を直せない</li><li><strong>誤りの原因究明</strong>：モデルが間違えたとき、どこを見て間違えたかが分からないと直せない</li></ul>\n<p>こうした要請に応える技術の総称が<strong>説明可能AI（XAI）</strong> である。</p>\n<p>M2-01 で「決定木は説明しやすいが精度で劣る」と書いた。<strong>精度と説明しやすさはしばしばトレードオフになる</strong>。XAIは、精度を落とさずに説明を得ようとする試みといえる。</p>"
+        },
+        {
+          "heading": "画像で「どこを見たか」を示す",
+          "html": "<p>画像認識では、<strong>入力画像のどの部分が判断に効いたか</strong>を可視化できる。</p>\n<p><strong>CAM</strong>（Class Activation Mapping）は、CNNの最終層の情報を使って、<strong>判断に寄与した領域を色の濃淡で示す</strong>。猫と判定した画像で、猫の顔の部分が赤く光る、といった出力になる。</p>\n<p>ただしCAMは<strong>モデルの構造に制約がある</strong>（GAP を使う必要がある、など）。</p>\n<p><strong>Grad-CAM</strong> はこれを改良し、<strong>勾配を使うことで幅広いCNNに適用できる</strong>ようにした。現在よく使われるのはこちらである。</p>\n<p><strong>CAM/Grad-CAM は画像とCNNのための手法</strong>である。ここが次との違いになる。</p>"
+        },
+        {
+          "heading": "モデルの中身を問わない手法",
+          "html": "<p>対して、<strong>どんなモデルにも使える</strong>手法もある。</p>\n<p><strong>LIME</strong> は、<strong>注目する1件の予測の周辺だけを、単純なモデルで近似する</strong>。全体を説明するのは無理でも、<strong>その1件の近くでなら線形モデルで説明できる</strong>という発想である。モデルの中身を知る必要がなく、入力を変えて出力を見るだけでよい。</p>\n<p><strong>SHAP</strong> は、<strong>各特徴量が予測にどれだけ寄与したかを公平に配分する</strong>。ゲーム理論の考え方（協力して得た利得をどう分けるか）を応用している。LIME と同様にモデルを問わず使えるうえ、<strong>寄与の合計が予測値と一致する</strong>という一貫性がある。</p>\n<p><strong>Permutation Importance</strong> はより単純である。<strong>ある特徴量の値をシャッフルして、精度がどれだけ落ちるかを見る</strong>。大きく落ちるなら、その特徴量は重要だったことになる。</p>\n<p><strong>CAM系＝画像・CNN専用／LIME・SHAP・Permutation Importance＝モデルを問わない。</strong>この区別が問われる。</p>\n<p>---</p>"
+        },
+        {
+          "heading": "なぜ軽くする必要があるのか",
+          "html": "<p>高精度なモデルは大きい。だが使う場面によっては、それが問題になる。</p>\n<ul><li>スマートフォンやカメラなど、<strong>計算資源が限られた端末</strong>で動かしたい</li><li>通信の遅延が許されない、あるいは<strong>通信そのものができない</strong>環境で使いたい</li><li>データを外部に送りたくない（プライバシー）</li></ul>\n<p>端末側で推論を行うことを<strong>エッジAI</strong>という。クラウドに送らないので、<strong>速く、通信不要で、データが外に出ない</strong>。その代わり、<strong>モデルが端末に収まる大きさでなければならない</strong>。</p>\n<p>軽量化の手法は3つある。<strong>何を削るか</strong>が違う。</p>"
+        },
+        {
+          "heading": "教え込む：蒸留",
+          "html": "<p><strong>蒸留</strong>は、<strong>大きなモデルの知識を、小さなモデルに教え込む</strong>手法である。</p>\n<p>大きなモデル（教師）に予測させ、その出力を、小さなモデル（生徒）が真似るように学習させる。</p>\n<p>正解ラベルだけで学ぶより情報が多い。「これは猫（0.9）だが、少し犬にも似ている（0.08）」という<strong>教師の迷い方まで含めて学べる</strong>ためである。</p>\n<p><strong>削っているのは「モデルの大きさ」そのもの。</strong> 別の小さいモデルを作る。</p>"
+        },
+        {
+          "heading": "削る：プルーニング",
+          "html": "<p><strong>プルーニング</strong>（枝刈り）は、<strong>重要でない重みや素子を削除する</strong>手法である。</p>\n<p>学習したモデルの中には、値がほぼ0で結果にほとんど影響しない重みが多数ある。これを取り除いても精度はあまり落ちない。</p>\n<p><strong>削っているのは「使われていない部分」。</strong> モデルの構造そのものを間引く。</p>\n<p>関連する仮説に<strong>宝くじ仮説</strong>がある。「大きなネットワークの中には、<strong>単独で学習させても同等の性能が出る小さな部分ネットワークが最初から含まれている</strong>」という主張である。大きく作って削る、というプルーニングのやり方を説明づける仮説として挙げられる。</p>"
+        },
+        {
+          "heading": "粗くする：量子化",
+          "html": "<p><strong>量子化</strong>は、<strong>重みを表す数値の精度を落とす</strong>手法である。</p>\n<p>通常は32ビットの浮動小数点数で重みを持つが、これを8ビットの整数などに変換する。<strong>メモリが4分の1になり、計算も速くなる</strong>。</p>\n<p>精度は多少落ちるが、実用上問題ない範囲に収まることが多い。</p>\n<p><strong>削っているのは「1つの重みが持つ情報量」。</strong> 数そのものを粗くする。</p>\n<p>これら全体を指す言葉が<strong>モデル圧縮</strong>である。</p>"
+        },
+        {
+          "heading": "通して読むと",
+          "html": "<p>この講の2つは、<strong>モデルを世に出すときに現れる制約</strong>への対処である。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>制約</th><th>対処</th><th>何をするか</th></tr></thead><tbody><tr><td data-label=\"制約\">判断根拠を説明できない</td><td data-label=\"対処\">XAI</td><td data-label=\"何をするか\">どこを見たか／何が効いたかを示す</td></tr><tr><td data-label=\"制約\">端末に載らない</td><td data-label=\"対処\">蒸留</td><td data-label=\"何をするか\"><strong>小さいモデルに教え込む</strong></td></tr><tr><td data-label=\"制約\">端末に載らない</td><td data-label=\"対処\">プルーニング</td><td data-label=\"何をするか\"><strong>不要な部分を削る</strong></td></tr><tr><td data-label=\"制約\">端末に載らない</td><td data-label=\"対処\">量子化</td><td data-label=\"何をするか\"><strong>数値を粗くする</strong></td></tr></tbody></table></div>\n<p>そして解釈性は、ここで終わる話ではない。<strong>M8-02（透明性）で、法律・倫理の要請として再び出てくる。</strong>技術的にできること（この講）と、社会的に求められること（M8）は別の議論であり、両方を知っている必要がある。</p>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">説明可能AI（XAI）</td><td data-label=\"ひとことで\">判断根拠を示せるようにする技術の総称</td><td data-label=\"試験ではこう問われる\">何のために必要かを問う</td></tr><tr><td data-label=\"用語\">ブラックボックス</td><td data-label=\"ひとことで\">判断の過程が人に分からない状態</td><td data-label=\"試験ではこう問われる\">XAIが必要な理由。M8-02でも扱う</td></tr><tr><td data-label=\"用語\">CAM</td><td data-label=\"ひとことで\">CNNの判断に寄与した領域を可視化する</td><td data-label=\"試験ではこう問われる\">構造に制約がある</td></tr><tr><td data-label=\"用語\">Grad-CAM</td><td data-label=\"ひとことで\">勾配を使い幅広いCNNに適用できるCAM</td><td data-label=\"試験ではこう問われる\">CAMの改良版</td></tr><tr><td data-label=\"用語\">LIME</td><td data-label=\"ひとことで\">1件の予測の周辺を単純なモデルで近似する</td><td data-label=\"試験ではこう問われる\"><strong>モデルを問わない</strong></td></tr><tr><td data-label=\"用語\">SHAP</td><td data-label=\"ひとことで\">各特徴量の寄与を公平に配分する</td><td data-label=\"試験ではこう問われる\"><strong>モデルを問わない</strong>。一貫性がある</td></tr><tr><td data-label=\"用語\">Permutation Importance</td><td data-label=\"ひとことで\">特徴量をシャッフルして精度低下を見る</td><td data-label=\"試験ではこう問われる\">最も単純。モデルを問わない</td></tr><tr><td data-label=\"用語\">エッジAI</td><td data-label=\"ひとことで\">端末側で推論を行うこと</td><td data-label=\"試験ではこう問われる\">速い・通信不要・データが外に出ない</td></tr><tr><td data-label=\"用語\">モデル圧縮</td><td data-label=\"ひとことで\">モデルを小さくすること全般</td><td data-label=\"試験ではこう問われる\">3手法の総称</td></tr><tr><td data-label=\"用語\">蒸留</td><td data-label=\"ひとことで\">大きなモデルの知識を小さなモデルに教える</td><td data-label=\"試験ではこう問われる\"><strong>別の小さいモデルを作る</strong></td></tr><tr><td data-label=\"用語\">プルーニング</td><td data-label=\"ひとことで\">重要でない重みや素子を削除する</td><td data-label=\"試験ではこう問われる\"><strong>不要な部分を削る</strong></td></tr><tr><td data-label=\"用語\">宝くじ仮説</td><td data-label=\"ひとことで\">大きな網の中に有効な小さな部分網が含まれる</td><td data-label=\"試験ではこう問われる\">プルーニングを説明づける仮説</td></tr><tr><td data-label=\"用語\">量子化</td><td data-label=\"ひとことで\">重みを表す数値の精度を落とす</td><td data-label=\"試験ではこう問われる\"><strong>1つの重みの情報量を減らす</strong></td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>説明が必要かは用件で決まる</strong> — 精度だけでよいのか、根拠が要るのかは 最初に確認すべき要件。後から解釈性を足すのは難しい</li><li><strong>量子化は最も手軽</strong> — 学習し直す必要がなく、ライブラリの機能で完結することが多い。 軽量化で最初に試す手になる</li><li><strong>LLMの量子化</strong> — 手元で大きなモデルを動かすとき、 4ビットや8ビットに量子化するのは同じ技術。メモリに載せるための定石</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>CAM / Grad-CAM</strong>＝<strong>画像・CNN専用</strong></td><td data-label=\"と、これ\"><strong>LIME / SHAP</strong>＝<strong>モデルを問わない</strong></td></tr><tr><td data-label=\"これ\"><strong>CAM</strong>＝構造に制約あり</td><td data-label=\"と、これ\"><strong>Grad-CAM</strong>＝勾配を使い幅広く適用できる</td></tr><tr><td data-label=\"これ\"><strong>蒸留</strong>＝小さいモデルに<strong>教え込む</strong></td><td data-label=\"と、これ\"><strong>プルーニング</strong>＝不要な部分を<strong>削る</strong></td></tr><tr><td data-label=\"これ\"><strong>プルーニング</strong>＝重みや素子を<strong>削除</strong></td><td data-label=\"と、これ\"><strong>量子化</strong>＝数値の<strong>精度を落とす</strong></td></tr><tr><td data-label=\"これ\"><strong>エッジAI</strong>＝端末側で推論</td><td data-label=\"と、これ\">クラウドで推論＝通信が必要</td></tr><tr><td data-label=\"これ\"><strong>宝くじ仮説</strong>＝有効な部分網が含まれる</td><td data-label=\"と、これ\">プルーニング＝実際に削る手法</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>手法の一般的な説明</strong>が中心で、年号・人名を含まない。<code>docs/10-authoring-rules.md</code> の方針により、一般的な定義には個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技33・技34）に準拠している。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>SHAP がゲーム理論（シャープレイ値）に基づく</strong>という説明は 広く知られているが、<strong>出典で確認していない</strong>。 またシラバスのキーワードは「SHAP」のみで、 <strong>理論的背景まで問われるかは確認していない。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>量子化で「メモリが4分の1になる」</strong>という記述は 32ビット→8ビットの場合の計算だが、<strong>実際の削減率は実装によって異なる</strong>。 <strong>数値が問われる可能性は低い</strong>と判断しているが、確認はしていない。</li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>CAM の構造上の制約</strong>（GAP を使う必要があるなど）は一般的な説明だが、 <strong>G検定でこの水準まで問われるかは確認していない。</strong> 「Grad-CAM は CAM を改良して適用範囲を広げた」までが必要な範囲と判断している。</li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li><strong>CAM / Grad-CAM は画像・CNN専用／LIME・SHAP はモデルを問わない</strong></li><li><strong>蒸留＝小さいモデルに教え込む／プルーニング＝不要な部分を削る／量子化＝数値を粗くする</strong></li><li>解釈性は技術の話（この講）と、<strong>法律・倫理の要請</strong>（M8-02）の両面がある</li></ul>"
+        }
+      ]
     }
   ]
 };
