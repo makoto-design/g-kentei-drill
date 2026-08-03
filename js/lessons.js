@@ -365,6 +365,46 @@ window.LESSON_DATA = {
           "html": "<ul><li><strong>適合率の分母は「予測が陽性」、再現率の分母は「実際が陽性」</strong>。この違いが最頻出</li><li>知りたいのは訓練誤差ではなく<strong>汎化誤差</strong>。測るには<strong>学習に使っていないデータ</strong>が要る</li><li><strong>ホールドアウト＝一度だけ分割／交差検証＝分割を変えて繰り返す</strong>。データが少ないほど交差検証</li></ul>"
         }
       ]
+    },
+    {
+      "id": "M3-01",
+      "module": "M3",
+      "title": "ニューラルネットワークと計算基盤",
+      "minutes": 40,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>単純パーセプトロンで解けない問題と、その解決策を説明できる</li><li>ニューラルネットワークとディープラーニングの関係を言える</li><li>GPUがディープラーニングに向く理由を、<strong>CPUとの設計思想の違い</strong>から説明できる</li></ul>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>M1-05で、脳をまねる研究の流れがあると触れた。ここからはその中身に入る。M3全体でニューラルネットワークの仕組みを見ていく。</p>\n<p>出発点は驚くほど単純な計算である。そこから何が足りず、何を足したのかを追う。</p>\n<h4>いちばん小さい部品</h4>\n<p>脳の神経細胞は、複数の入力を受け取り、合計が一定を超えると発火して次へ信号を送る。これを数式にしたものが<strong>単純パーセプトロン</strong>である。</p>\n<p>やっていることは3段階しかない。</p>\n<ol><li>各入力に<strong>重み</strong>を掛ける</li><li>全部足す</li><li>合計が<strong>しきい値</strong>を超えたら1、超えなければ0を出す</li></ol>\n<p>学習とは、この<strong>重みを調整すること</strong>である。「この入力を重視する」「これは無視する」を数値で表現する。</p>\n<p>単純パーセプトロンは、<strong>直線で分けられる問題</strong>なら解ける。だが、直線で分けられない問題は解けない。有名な例が排他的論理和（XOR）で、「どちらか一方だけが1のとき1」という関係は1本の直線では分離できない。</p>\n<p><strong>単純パーセプトロンの限界＝線形分離可能な問題しか解けない。</strong> ここは頻出である。</p>\n<h4>層を重ねる</h4>\n<p>解決策は素直だった。<strong>パーセプトロンを層状に重ねる</strong>。これが<strong>多層パーセプトロン</strong>である。</p>\n<p>構造は3種類の層でできている。</p>\n<ul><li><strong>入力層</strong>：データを受け取る。ここでは計算しない</li><li><strong>隠れ層</strong>：入力層と出力層の間にある層。<strong>ここが処理の中心</strong></li><li><strong>出力層</strong>：最終的な予測を出す</li></ul>\n<p>隠れ層を挟むと、直線では分けられない問題も表現できるようになる。XORも2層あれば解ける。</p>\n<p>そして、この<strong>隠れ層を多数重ねたもの</strong>がディープラーニングである。ここが両者の関係になる。</p>\n<p><strong>ニューラルネットワークという枠組みの中で、層を深くしたものがディープラーニング。</strong>まったく別の技術ではなく、<strong>深さの違い</strong>である。</p>\n<p>なぜ深くすると強いのか。浅い層は単純な特徴（線や色）を、深い層はその組み合わせ（形や物体）を捉える。<strong>層を重ねるほど抽象度の高い特徴を自動で獲得できる</strong>。M1-01 で見た「特徴量設計の自動化」は、この構造から生まれている。</p>\n<h4>深くすると計算が重くなる</h4>\n<p>層を深くすれば表現力は上がるが、計算量が爆発する。ここでハードウェアの話が必要になる。</p>\n<p><strong>CPU</strong> は「何でも器用にこなす少数精鋭」として設計されている。複雑な条件分岐や順序のある処理を高速に処理でき、OSやアプリの実行に向く。コアの数は数個から数十個程度である。</p>\n<p><strong>GPU</strong> はもともと画像処理用のハードウェアである。画面上の膨大な画素に対して<strong>同じ計算を一斉に適用する</strong>ために作られた。そのため、単純な演算ユニットを<strong>数千個並べる</strong>設計になっている。</p>\n<p>ニューラルネットワークの計算は、突き詰めれば<strong>大量の掛け算と足し算（行列演算）</strong> である。条件分岐はほとんどなく、同じ計算を大量のデータに一斉に適用する。<strong>これはGPUの得意な形と完全に一致する。</strong> だからGPUがディープラーニングに使われる。</p>\n<p><strong>CPU＝複雑な処理を少数のコアで／GPU＝単純な処理を大量のコアで並列に。</strong>この対比が問われる。</p>\n<p>さらに特化したものが <strong>TPU</strong> である。Googleが開発した、<strong>機械学習の計算に特化した専用チップ</strong>（ASIC）で、行列演算に絞って効率を高めている。汎用性は下がるが、電力あたりの性能が高い。</p>\n<p><strong>汎用性は CPU &gt; GPU &gt; TPU、特化度と効率は逆順</strong>という関係になる。</p>\n<h4>データと計算資源が要る</h4>\n<p>ディープラーニングを適用できる場面には条件がある。</p>\n<ul><li><strong>大量のデータ</strong>があること。層が深いほどパラメータが多く、学習に多くの例が要る</li><li><strong>計算資源</strong>があること。学習にはGPU/TPUと時間が必要</li></ul>\n<p>逆にいえば、<strong>データが少ない、あるいは表形式の小規模データなら、ディープラーニングより従来の機械学習のほうが良い</strong>ことが多い。M2-01 で触れた勾配ブースティングが表形式で強いのは、このためである。</p>\n<h4>通して読むと</h4>\n<p>この講の流れは「<strong>足りないものを足していく</strong>」の連続である。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>段階</th><th>何が足りなかったか</th><th>足したもの</th></tr></thead><tbody><tr><td data-label=\"段階\">単純パーセプトロン</td><td data-label=\"何が足りなかったか\">線形分離できる問題しか解けない</td><td data-label=\"足したもの\"><strong>隠れ層</strong>（多層パーセプトロン）</td></tr><tr><td data-label=\"段階\">多層化</td><td data-label=\"何が足りなかったか\">計算が重い</td><td data-label=\"足したもの\"><strong>GPU/TPU</strong></td></tr><tr><td data-label=\"段階\">深層化</td><td data-label=\"何が足りなかったか\">学習例が足りない</td><td data-label=\"足したもの\"><strong>大量のデータ</strong></td></tr></tbody></table></div>\n<p>M3の残りの講は、この「深くしたときに起きる問題」への対処が続く。活性化関数（M3-02）、正則化（M3-03）、誤差逆伝播と最適化（M3-04）——すべて<strong>層を深くしたせいで生じた課題</strong>への答えとして読める。</p>"
+        },
+        {
+          "heading": "比較表",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th></th><th>CPU</th><th>GPU</th><th>TPU</th></tr></thead><tbody><tr><td data-label=\"\">設計思想</td><td data-label=\"CPU\">複雑な処理を少数のコアで</td><td data-label=\"GPU\">単純な処理を大量のコアで</td><td data-label=\"TPU\">機械学習の計算に特化</td></tr><tr><td data-label=\"\">コア数</td><td data-label=\"CPU\">数個〜数十個</td><td data-label=\"GPU\">数千個</td><td data-label=\"TPU\">（専用回路）</td></tr><tr><td data-label=\"\">得意なこと</td><td data-label=\"CPU\">条件分岐、順序のある処理</td><td data-label=\"GPU\">並列可能な行列演算</td><td data-label=\"TPU\">行列演算に特化</td></tr><tr><td data-label=\"\">汎用性</td><td data-label=\"CPU\"><strong>最も高い</strong></td><td data-label=\"GPU\">中</td><td data-label=\"TPU\"><strong>最も低い</strong></td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">単純パーセプトロン</td><td data-label=\"ひとことで\">入力に重みを掛けて足し、しきい値で0/1を出す</td><td data-label=\"試験ではこう問われる\"><strong>線形分離可能な問題しか解けない</strong>点</td></tr><tr><td data-label=\"用語\">重み</td><td data-label=\"ひとことで\">各入力をどれだけ重視するかの値</td><td data-label=\"試験ではこう問われる\">学習とは重みの調整であること</td></tr><tr><td data-label=\"用語\">多層パーセプトロン</td><td data-label=\"ひとことで\">層を重ねたパーセプトロン</td><td data-label=\"試験ではこう問われる\">線形分離できない問題も扱える</td></tr><tr><td data-label=\"用語\">入力層</td><td data-label=\"ひとことで\">データを受け取る層</td><td data-label=\"試験ではこう問われる\">計算はしない</td></tr><tr><td data-label=\"用語\">隠れ層</td><td data-label=\"ひとことで\">入力層と出力層の間の層</td><td data-label=\"試験ではこう問われる\"><strong>ここが処理の中心</strong>。多いほど深い</td></tr><tr><td data-label=\"用語\">出力層</td><td data-label=\"ひとことで\">最終的な予測を出す層</td><td data-label=\"試験ではこう問われる\">—</td></tr><tr><td data-label=\"用語\">CPU</td><td data-label=\"ひとことで\">複雑な処理を少数のコアで行う</td><td data-label=\"試験ではこう問われる\">GPUとの設計思想の違い</td></tr><tr><td data-label=\"用語\">GPU</td><td data-label=\"ひとことで\">単純な処理を大量のコアで並列に行う</td><td data-label=\"試験ではこう問われる\"><strong>行列演算に向く理由</strong>とセット</td></tr><tr><td data-label=\"用語\">TPU</td><td data-label=\"ひとことで\">機械学習に特化したGoogleの専用チップ</td><td data-label=\"試験ではこう問われる\">汎用性と効率のトレードオフ</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>GPUが品薄になる理由</strong> — 学習も推論も行列演算の塊で、CPUでは現実的な時間で終わらない</li><li><strong>「ディープラーニングを使うべきか」の判断</strong> — データが少ない、表形式、 説明が必要——このどれかに当てはまるなら、従来の機械学習のほうが良いことが多い</li><li><strong>層の深さと抽象度</strong> — 画像モデルの浅い層がエッジ、深い層が物体を見ているのは、 M5-06 の Grad-CAM で可視化される話につながる</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>単純パーセプトロン</strong>＝線形分離可能な問題のみ</td><td data-label=\"と、これ\"><strong>多層パーセプトロン</strong>＝非線形も扱える</td></tr><tr><td data-label=\"これ\"><strong>CPU</strong>＝複雑な処理を少数のコアで</td><td data-label=\"と、これ\"><strong>GPU</strong>＝単純な処理を大量のコアで</td></tr><tr><td data-label=\"これ\"><strong>GPU</strong>＝汎用的な並列計算</td><td data-label=\"と、これ\"><strong>TPU</strong>＝機械学習に特化した専用チップ</td></tr><tr><td data-label=\"これ\">ニューラルネットワーク＝<strong>枠組み</strong></td><td data-label=\"と、これ\">ディープラーニング＝<strong>隠れ層を多数重ねたもの</strong></td></tr><tr><td data-label=\"これ\"><strong>隠れ層</strong>＝処理の中心</td><td data-label=\"と、これ\">入力層＝受け取るだけで計算しない</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>構造と設計思想の一般的な説明</strong>が中心で、年号・人名・数値を含まない。<code>docs/10-authoring-rules.md</code> の方針により、一般的な定義には個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技11）に準拠している。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>CPUのコア数「数個〜数十個」、GPUの「数千個」という数値</strong>は 一般的な説明として書いたが、<strong>出典で確認していない</strong>。 世代によって大きく変わるため、<strong>数値そのものが問われる可能性は低い</strong>と判断している。 問われるのは「少数の高性能コア対多数の単純コア」という設計思想の対比。</li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>TPUがASIC（特定用途向け集積回路）である</strong>という記述は一般的な説明だが、 シラバスのキーワードは「TPU」のみで、ASICという語は含まれていない。</li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li><strong>単純パーセプトロンは線形分離可能な問題しか解けない</strong>。隠れ層を挟むと非線形も扱える</li><li>ディープラーニングは別技術ではなく、<strong>ニューラルネットワークの隠れ層を多数重ねたもの</strong></li><li><strong>CPU＝複雑な処理を少数のコアで／GPU＝単純な行列演算を大量のコアで</strong>。TPUはさらに機械学習特化</li></ul>"
+        }
+      ]
     }
   ]
 };
