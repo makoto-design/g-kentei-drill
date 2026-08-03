@@ -427,8 +427,8 @@ window.MAP_DATA = {
         "法5"
       ],
       "area": "AIに関する法律と契約",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 11
     },
     {
       "id": "M7-03",
