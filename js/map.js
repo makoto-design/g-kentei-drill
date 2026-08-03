@@ -480,8 +480,8 @@ window.MAP_DATA = {
         "法18"
       ],
       "area": "AI倫理・AIガバナンス",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 13
     }
   ]
 };
