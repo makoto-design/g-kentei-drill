@@ -228,8 +228,8 @@ window.MAP_DATA = {
         "技13"
       ],
       "area": "ディープラーニングの概要",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 6
     },
     {
       "id": "M3-03",
