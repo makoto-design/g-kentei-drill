@@ -445,6 +445,46 @@ window.LESSON_DATA = {
           "html": "<ul><li>活性化関数がないと、何層重ねても<strong>線形変換1回分</strong>にしかならない</li><li><strong>シグモイド → tanh → ReLU系</strong>の流れは、一貫して<strong>勾配消失を避ける</strong>ための変遷</li><li><strong>隠れ層は勾配の都合（ReLU系）、出力層はタスクの都合</strong>（2値=シグモイド／多クラス=ソフトマックス／回帰=なし）</li></ul>"
         }
       ]
+    },
+    {
+      "id": "M3-03",
+      "module": "M3",
+      "title": "正則化",
+      "minutes": 40,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>L1正則化とL2正則化の違いを「<strong>重みがどうなるか</strong>」で言い分けられる</li><li>ラッソ回帰とリッジ回帰が、それぞれどちらの正則化かを間違えずに言える</li><li>ドロップアウトが過学習を防ぐ仕組みを説明できる</li></ul>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>M2-04 で<strong>過学習</strong>——訓練データに合わせすぎて未知のデータに弱くなる現象——を見た。M3-01 で層を深くすると表現力が上がると書いたが、<strong>表現力が上がるほど過学習しやすくなる</strong>。</p>\n<p>この講は、その過学習を抑えるための道具立てである。やり方は大きく3系統ある。<strong>重みを抑える／構造をいじる／早めに止める</strong>。</p>\n<h4>過学習しているモデルは何が起きているか</h4>\n<p>訓練データにぴったり合わせようとすると、モデルは極端な値を取り始める。たった1つの外れ値に合わせるために、特定の重みだけが異常に大きくなる。</p>\n<p>つまり<strong>過学習しているモデルは、重みが大きくなりがち</strong>である。逆にいえば、<strong>重みが大きくなりすぎないよう制約をかければ過学習を抑えられる</strong>。</p>\n<p>この「重みの大きさに罰則を与える」考え方を<strong>正則化</strong>という。誤差関数に「重みが大きいほど増える項」を足し、<strong>誤差と重みの大きさの両方を同時に小さくする</strong>ようにする。</p>\n<p>M2-04 の<strong>オッカムの剃刀</strong>（単純な方を選べ）を、学習の中に組み込んだものと考えると分かりやすい。</p>\n<h4>罰則の与え方が2通りある</h4>\n<p>罰則の測り方で性質が変わる。</p>\n<p><strong>L1正則化</strong>は、重みの<strong>絶対値の和</strong>を罰則にする。この形だと、<strong>重みがちょうど0になるものが出てくる</strong>。0になった特徴量は使われないことになるので、<strong>実質的に特徴量を選択している</strong>ことになる。不要な特徴量を自動的に切り捨てられるのが利点である。</p>\n<p><strong>L2正則化</strong>は、重みの<strong>2乗の和</strong>を罰則にする。こちらは重みを<strong>全体的に小さくする</strong>が、<strong>ちょうど0にはなりにくい</strong>。すべての特徴量を少しずつ使う、穏やかな形になる。</p>\n<p><strong>L1＝0になる（特徴量が選択される）／L2＝小さくなるが0にはならない。</strong>この違いが最頻出である。</p>\n<p>なお <strong>L0正則化</strong>という考え方もある。これは「<strong>0でない重みの個数</strong>」そのものを罰則にするもので、最も直接的に特徴量を減らせるが、計算が現実的でないためあまり使われない。</p>\n<h4>名前が変わる</h4>\n<p>線形回帰にこれらの正則化を適用したものには、別の名前が付いている。</p>\n<ul><li><strong>ラッソ回帰</strong>＝線形回帰 + <strong>L1</strong>正則化</li><li><strong>リッジ回帰</strong>＝線形回帰 + <strong>L2</strong>正則化</li></ul>\n<p><strong>ラッソがL1、リッジがL2。</strong> ここは覚えるしかないが、「ラッソ（lasso＝投げ縄）で不要なものを縛り上げて0にする」と結びつけると忘れにくい。</p>\n<p><strong>この対応を入れ替えた選択肢が定番の引っかけ</strong>になる。</p>\n<h4>構造そのものをいじる</h4>\n<p>重みに罰則を与えるのとは別の発想もある。</p>\n<p><strong>ドロップアウト</strong>は、学習のたびに<strong>隠れ層の素子をランダムに一定割合だけ無効にする</strong>。毎回違う形のネットワークで学習することになる。</p>\n<p>これがなぜ効くのか。素子を無効にされると、残った素子だけで何とかしなければならない。特定の素子に依存できなくなるので、<strong>役割が分散する</strong>。</p>\n<p>見方を変えると、<strong>毎回少しずつ違うネットワークを学習させて、最後にそれらを平均している</strong>ことになる。M2-01 のアンサンブル学習に近い効果が、1つのネットワークの中で得られる。</p>\n<p><strong>重要な注意</strong>：ドロップアウトは<strong>学習時だけ</strong>行う。推論時（実際に使うとき）はすべての素子を使う。ここは問われる。</p>\n<h4>早めに止める</h4>\n<p>最も単純な対処もある。</p>\n<p>学習を進めると訓練誤差は下がり続けるが、汎化誤差はあるところで下げ止まり、そこから増え始める（M2-04）。<strong>その増え始める手前で学習を打ち切る</strong>のが<strong>早期終了</strong>である。</p>\n<p>検証用データでの誤差を監視し、悪化に転じたら止める。実装が簡単で、余分な学習時間も節約できる。</p>\n<h4>通して読むと</h4>\n<p>過学習への対処は、<strong>どこに手を入れるか</strong>で3系統に分かれる。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>系統</th><th>何をするか</th><th>手法</th></tr></thead><tbody><tr><td data-label=\"系統\">重みを抑える</td><td data-label=\"何をするか\">誤差関数に罰則を足す</td><td data-label=\"手法\">L1（ラッソ）、L2（リッジ）</td></tr><tr><td data-label=\"系統\">構造をいじる</td><td data-label=\"何をするか\">学習のたびに素子を無効化する</td><td data-label=\"手法\">ドロップアウト</td></tr><tr><td data-label=\"系統\">学習を止める</td><td data-label=\"何をするか\">悪化に転じる手前で打ち切る</td><td data-label=\"手法\">早期終了</td></tr></tbody></table></div>\n<p>いずれも<strong>モデルの自由を意図的に制限している</strong>点は共通している。表現力を上げて（層を深くして）から、今度は制限する——一見すると矛盾しているが、<strong>「必要な複雑さは持たせ、余計な複雑さは削る」</strong>という調整をしていると読める。</p>"
+        },
+        {
+          "heading": "比較表",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>手法</th><th>何を制限するか</th><th>重みへの効果</th></tr></thead><tbody><tr><td data-label=\"手法\">L1正則化（ラッソ回帰）</td><td data-label=\"何を制限するか\">重みの<strong>絶対値</strong>の和</td><td data-label=\"重みへの効果\"><strong>0になるものが出る</strong>＝特徴量選択</td></tr><tr><td data-label=\"手法\">L2正則化（リッジ回帰）</td><td data-label=\"何を制限するか\">重みの<strong>2乗</strong>の和</td><td data-label=\"重みへの効果\">全体的に小さくなるが<strong>0にはなりにくい</strong></td></tr><tr><td data-label=\"手法\">L0正則化</td><td data-label=\"何を制限するか\">0でない重みの<strong>個数</strong></td><td data-label=\"重みへの効果\">直接的だが計算が現実的でない</td></tr><tr><td data-label=\"手法\">ドロップアウト</td><td data-label=\"何を制限するか\">ネットワークの構造</td><td data-label=\"重みへの効果\"><strong>学習時のみ</strong>素子をランダムに無効化</td></tr><tr><td data-label=\"手法\">早期終了</td><td data-label=\"何を制限するか\">学習の長さ</td><td data-label=\"重みへの効果\">汎化誤差が悪化する手前で打ち切る</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">正則化</td><td data-label=\"ひとことで\">重みが大きくなりすぎないよう罰則をかける</td><td data-label=\"試験ではこう問われる\">過学習への対処であること</td></tr><tr><td data-label=\"用語\">L0正則化</td><td data-label=\"ひとことで\">0でない重みの個数を罰則にする</td><td data-label=\"試験ではこう問われる\">計算が難しく実用されない点</td></tr><tr><td data-label=\"用語\">L1正則化</td><td data-label=\"ひとことで\">重みの<strong>絶対値</strong>の和を罰則にする</td><td data-label=\"試験ではこう問われる\"><strong>重みが0になる</strong>＝特徴量選択</td></tr><tr><td data-label=\"用語\">L2正則化</td><td data-label=\"ひとことで\">重みの<strong>2乗</strong>の和を罰則にする</td><td data-label=\"試験ではこう問われる\"><strong>0にはなりにくい</strong></td></tr><tr><td data-label=\"用語\">ラッソ回帰</td><td data-label=\"ひとことで\">線形回帰 + <strong>L1</strong>正則化</td><td data-label=\"試験ではこう問われる\">リッジとの入れ替えが定番</td></tr><tr><td data-label=\"用語\">リッジ回帰</td><td data-label=\"ひとことで\">線形回帰 + <strong>L2</strong>正則化</td><td data-label=\"試験ではこう問われる\">ラッソとの入れ替えが定番</td></tr><tr><td data-label=\"用語\">ドロップアウト</td><td data-label=\"ひとことで\">学習時に素子をランダムに無効化する</td><td data-label=\"試験ではこう問われる\"><strong>推論時には使わない</strong>点</td></tr><tr><td data-label=\"用語\">早期終了</td><td data-label=\"ひとことで\">汎化誤差が悪化する手前で学習を止める</td><td data-label=\"試験ではこう問われる\">検証データで監視すること</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>正則化はハイパーパラメータ調整の主戦場</strong> — 罰則の強さをどれだけにするかで 精度が大きく変わる。強すぎれば学習不足、弱すぎれば過学習になる</li><li><strong>L1で特徴量を絞る</strong> — 特徴量が数百あるとき、L1正則化をかけると 効いている特徴量だけが残る。特徴量選択の手段として実務でも使う</li><li><strong>早期終了は事実上の標準</strong> — 学習を回しっぱなしにせず、 検証誤差が改善しなくなったら止めるのは、いまのフレームワークでは既定の運用</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>L1正則化</strong>＝絶対値の和。<strong>0になる</strong></td><td data-label=\"と、これ\"><strong>L2正則化</strong>＝2乗の和。<strong>0にならない</strong></td></tr><tr><td data-label=\"これ\"><strong>ラッソ回帰</strong>＝<strong>L1</strong></td><td data-label=\"と、これ\"><strong>リッジ回帰</strong>＝<strong>L2</strong></td></tr><tr><td data-label=\"これ\">ドロップアウト＝<strong>学習時のみ</strong>素子を無効化</td><td data-label=\"と、これ\">推論時はすべての素子を使う</td></tr><tr><td data-label=\"これ\"><strong>正則化</strong>＝過学習を抑える（M3-03）</td><td data-label=\"と、これ\"><strong>正規化</strong>＝値の範囲や分布を揃える（M4-02）</td></tr><tr><td data-label=\"これ\"><strong>早期終了</strong>＝学習を途中で止める</td><td data-label=\"と、これ\">勾配消失＝学習が進まない（M3-02）</td></tr></tbody></table></div>\n<blockquote><strong>正則化と正規化は字が似ているが別物。</strong> 正則化（regularization）は過学習対策、正規化（normalization）は 値のスケールを揃える処理で、M4-02 のバッチ正規化などがこちらにあたる。</blockquote>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>手法の一般的な定義</strong>が中心で、年号・人名・数値を含まない。<code>docs/10-authoring-rules.md</code> の方針により、一般的な定義には個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技14）に準拠している。</p>\n<p><strong>シラバス改訂の注意</strong>：Gシラバス2024 では技19の分類名が「正則化層」から「<strong>正規化層</strong>」に変更されている（改訂履歴 v1.0）。<strong>正則化（技14・この講）と正規化層（技19・M4-02）は別物</strong>なので、用語を取り違えないこと。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>早期終了がシラバス上どこに属するか。</strong> 技14（正則化）のキーワードに 「早期終了」は含まれておらず、技16（最適化手法）のキーワードに含まれている。 本講では正則化の文脈で説明したが、<strong>M3-04 でも最適化の文脈で再度触れる</strong>。 どちらの文脈で問われるかは確認できていない。</li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>ドロップアウトで無効化する割合の典型値</strong>（0.5 など）は 一般によく使われるが、<strong>数値が問われるかは確認していない</strong>ため記載していない。</li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li><strong>L1＝絶対値の和で重みが0になる（特徴量選択）／L2＝2乗の和で0にはならない</strong></li><li><strong>ラッソ回帰＝L1、リッジ回帰＝L2</strong>。入れ替えが定番の引っかけ</li><li><strong>ドロップアウトは学習時のみ</strong>素子を無効化する。推論時は全部使う</li></ul>"
+        }
+      ]
     }
   ]
 };
