@@ -402,8 +402,8 @@ window.MAP_DATA = {
         "技37"
       ],
       "area": "AIに必要な数理・統計知識",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 12
     },
     {
       "id": "M7-01",
