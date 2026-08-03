@@ -380,8 +380,8 @@ window.MAP_DATA = {
         "技35"
       ],
       "area": "AIの社会実装に向けて",
-      "hasText": false,
-      "questions": 0
+      "hasText": true,
+      "questions": 6
     },
     {
       "id": "M6-02",
