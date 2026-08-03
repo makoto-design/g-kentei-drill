@@ -869,6 +869,82 @@ window.LESSON_DATA = {
           "html": "<ul><li><strong>DQN は Q学習の「表」をニューラルネットワークに置き換えた</strong>もの。改良版は名前と狙いまで</li><li><strong>GAN は生成器と識別器を競わせる／拡散モデルはノイズを段階的に除去する</strong></li><li><strong>Pix2Pix＝対あり／CycleGAN＝対なし</strong>。<strong>RLHF は人間の評価を報酬にしてLLMを調整する</strong></li></ul>"
         }
       ]
+    },
+    {
+      "id": "M5-05",
+      "module": "M5",
+      "title": "転移学習とマルチモーダル",
+      "minutes": 50,
+      "sections": [
+        {
+          "heading": "この講で答えられるようになること",
+          "html": "<ul><li>転移学習とファインチューニングの違いを、<strong>どこまで重みを更新するか</strong>で言える</li><li>Zero-shot・One-shot・Few-shot を例の数で区別できる</li><li>自己教師あり学習が「教師なし」とどう違うかを説明できる</li></ul>"
+        },
+        {
+          "heading": "この講の位置づけ",
+          "html": "<p><strong>実務で使っている言葉が、そのまま試験用語として出てくる講</strong>である。学習者プロファイル（<code>docs/01-learner-profile.md</code>）が最も効く領域なので、<strong>知っている概念を試験用語に翻訳する</strong>ことに集中する。</p>"
+        },
+        {
+          "heading": "話の流れ",
+          "html": "<p>M4-04 で「教師データが足りない」問題に触れた。この講はその<strong>本命の答え</strong>である。</p>\n<p><strong>一からモデルを作るのをやめ、すでに学習済みのモデルを使い回す。</strong>この発想が、いまのAI利用のほぼすべてを支えている。</p>\n<p>そしてもう1つ、<strong>扱うデータの種類を増やす</strong>話（マルチモーダル）が続く。</p>\n<p>---</p>"
+        },
+        {
+          "heading": "まず大量のデータで学ばせる",
+          "html": "<p><strong>事前学習</strong>とは、本番のタスクの前に、<strong>大量のデータで汎用的な表現を学ばせておく</strong>ことである（M4-04 でも出た）。</p>\n<p>こうして作られたモデルを<strong>事前学習済みモデル</strong>という。BERT（M5-02）が確立した形で、いまのLLMもすべてこの形をとる。</p>\n<p>事前学習では、ラベル付けのコストが問題になる。そこで使われるのが<strong>自己教師あり学習</strong>である。</p>\n<p><strong>データそのものから正解を自動的に作り出す</strong>。たとえば、</p>\n<ul><li>文の一部を隠して、それを当てさせる（BERT）</li><li>次に来る単語を当てさせる（GPT系）</li></ul>\n<p>正解は元の文にあるので、<strong>人がラベルを付ける必要がない</strong>。インターネット上のテキストをそのまま学習に使えるのは、この仕組みによる。</p>\n<p><strong>教師なし学習との違い</strong>に注意する。教師なし学習（M2-02）は<strong>正解そのものが存在しない</strong>（クラスタリングなど）。自己教師あり学習は<strong>正解を自動生成している</strong>ので、学習の形は教師ありである。</p>\n<p><strong>半教師あり学習</strong>もある。これは<strong>少量のラベル付きデータと、大量のラベルなしデータを併用する</strong>方法である。</p>"
+        },
+        {
+          "heading": "学習済みモデルを別の用途へ",
+          "html": "<p>事前学習済みモデルを、<strong>別のタスクに転用する</strong>のが<strong>転移学習</strong>である。</p>\n<p>一般に、次のように使う。</p>\n<ul><li>事前学習済みモデルの<strong>大部分の重みは固定したまま</strong></li><li><strong>出力に近い層だけを、目的のタスク用に付け替えて学習する</strong></li></ul>\n<p>画像モデルなら、浅い層が学んだ「エッジ」「模様」といった特徴はどんなタスクでも使えるので、そのまま流用する。</p>\n<p><strong>ファインチューニング</strong>は、<strong>モデル全体（またはより広い範囲）の重みを更新する</strong>。転移学習より深く適応させられるが、データと計算資源をより多く必要とする。</p>\n<p><strong>転移学習＝主に出力側だけ／ファインチューニング＝より広く重みを更新。</strong>この違いが問われる。</p>\n<blockquote><strong>注意</strong>：この2つの用語の使い分けは文献によって揺れがある。 「ファインチューニングは転移学習の一手法」とする整理もある。 <strong>試験では「どこまで重みを更新するか」の対比で捉える</strong>のが安全と考えている。</blockquote>"
+        },
+        {
+          "heading": "適応させると忘れる",
+          "html": "<p>ファインチューニングには副作用がある。</p>\n<p>新しいタスクに合わせて重みを更新すると、<strong>もともとできていたことができなくなる</strong>ことがある。これを<strong>破滅的忘却</strong>という。</p>\n<p>人間なら新しいことを覚えても古いことは残るが、ニューラルネットワークは重みを共有しているため、上書きが起きる。</p>"
+        },
+        {
+          "heading": "例をいくつ見せるか",
+          "html": "<p>学習済みモデルを使うとき、<strong>そもそも学習し直さない</strong>という選択肢がある。プロンプトに例を書くだけで、その場でタスクをこなさせる方式である。</p>\n<p>例の数で呼び方が変わる。</p>\n<ul><li><strong>Zero-shot</strong>：例を<strong>1つも</strong>見せない。指示だけ</li><li><strong>One-shot</strong>：例を<strong>1つ</strong>見せる</li><li><strong>Few-shot</strong>：例を<strong>数個</strong>見せる</li></ul>\n<p><strong>Zero＝0個、One＝1個、Few＝数個。</strong> 名前がそのまま数を表している。</p>\n<p><strong>重みは一切更新されない</strong>点が、ファインチューニングとの決定的な違いである。</p>"
+        },
+        {
+          "heading": "シラバス範囲外だが実務で使う言葉",
+          "html": "<p><code>docs/02-curriculum.md</code> に記したとおり、<strong>プロンプトエンジニアリング、RAG、Chain-of-Thought、AIエージェント</strong>は<strong>Gシラバス2024 のキーワードに含まれていない</strong>。</p>\n<p>ただし、この講の内容と地続きなので、対応関係だけ示しておく。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>実務の言葉</th><th>試験用語との関係</th></tr></thead><tbody><tr><td data-label=\"実務の言葉\">プロンプトに例を書く</td><td data-label=\"試験用語との関係\"><strong>Few-shot</strong>（キーワードにある）</td></tr><tr><td data-label=\"実務の言葉\">RAG</td><td data-label=\"試験用語との関係\">外部知識を参照させる工夫。<strong>シラバスにはない</strong></td></tr><tr><td data-label=\"実務の言葉\">Chain-of-Thought</td><td data-label=\"試験用語との関係\">思考過程を書かせる工夫。<strong>シラバスにはない</strong></td></tr><tr><td data-label=\"実務の言葉\">AIエージェント</td><td data-label=\"試験用語との関係\"><strong>エージェント</strong>（技1）は認識・判断・行動する主体の意味</td></tr></tbody></table></div>\n<p><strong>出題の中心にはならないので、時間を割きすぎないこと。</strong></p>\n<p>---</p>"
+        },
+        {
+          "heading": "種類をまたぐ",
+          "html": "<p>これまでは画像なら画像、テキストならテキストと、<strong>1種類のデータ（モダリティ）</strong> を扱ってきた。</p>\n<p><strong>複数の種類を同時に扱う</strong>のが<strong>マルチモーダル</strong>である。画像とテキスト、音声と映像、といった組み合わせになる。</p>\n<p>代表的なタスクがある。</p>\n<ul><li><strong>Image Captioning</strong>：<strong>画像から説明文を生成する</strong></li><li><strong>Visual Question Answering（VQA）</strong>：<strong>画像について質問に答える</strong></li><li><strong>Text-To-Image</strong>：<strong>文章から画像を生成する</strong></li></ul>"
+        },
+        {
+          "heading": "代表的なモデル",
+          "html": "<p><strong>CLIP</strong> は、<strong>画像とテキストを同じ空間に埋め込む</strong>ように学習したモデルである。「犬の写真」と「犬」というテキストが近くなるように学習する。</p>\n<p>これにより、<strong>学習していないカテゴリでも分類できる</strong>。分類したいラベルをテキストとして与えれば、画像との近さで判定できるからだ。<strong>Zero-shot 分類</strong>が可能になる。</p>\n<p><strong>DALL-E</strong> は Text-To-Image のモデルで、文章から画像を生成する。</p>\n<p><strong>Flamingo</strong> は画像とテキストを扱い、少数の例で新しいタスクに対応できる（Few-shot に対応した）マルチモーダルモデルである。</p>\n<p><strong>Unified-IO</strong> は、<strong>さまざまな種類の入出力を1つのモデルで扱う</strong>ことを目指したモデルである。</p>"
+        },
+        {
+          "heading": "基盤モデル",
+          "html": "<p><strong>基盤モデル</strong>は、<strong>大量のデータで事前学習され、多様なタスクに適応できる大規模なモデル</strong>を指す。</p>\n<p>従来は「翻訳用のモデル」「分類用のモデル」とタスクごとに作っていた。基盤モデルは<strong>1つのモデルを多様な用途に転用する</strong>という考え方である。LLMも、マルチモーダルモデルも、この枠組みで語られる。</p>\n<p>関連する考え方に<strong>マルチタスク学習</strong>がある。<strong>複数のタスクを同時に学習させる</strong>ことで、タスク間で共通する知識が共有され、個別に学ぶより精度が上がることがある。</p>"
+        },
+        {
+          "heading": "通して読むと",
+          "html": "<p>この講は「<strong>一から作らない</strong>」という一点で貫かれている。</p>\n<div class=\"tablewrap\"><table><thead><tr><th>段階</th><th>何を使い回すか</th></tr></thead><tbody><tr><td data-label=\"段階\">事前学習</td><td data-label=\"何を使い回すか\"><strong>データ</strong>（ラベルなしで大量に）</td></tr><tr><td data-label=\"段階\">転移学習・ファインチューニング</td><td data-label=\"何を使い回すか\"><strong>学習済みの重み</strong></td></tr><tr><td data-label=\"段階\">Few-shot</td><td data-label=\"何を使い回すか\"><strong>推論時の例</strong>（重みは更新しない）</td></tr><tr><td data-label=\"段階\">基盤モデル</td><td data-label=\"何を使い回すか\"><strong>1つのモデルを多様な用途に</strong></td></tr></tbody></table></div>\n<p>M1-01 からの軸で読めば、<strong>人が用意するものが「ラベル付きデータ」から「指示と少数の例」まで減った</strong>。これが実務でLLMを使うときの実感そのものになっている。</p>"
+        },
+        {
+          "heading": "用語の整理",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>用語</th><th>ひとことで</th><th>試験ではこう問われる</th></tr></thead><tbody><tr><td data-label=\"用語\">事前学習</td><td data-label=\"ひとことで\">本番の前に大量データで汎用表現を学ばせる</td><td data-label=\"試験ではこう問われる\">事前学習済みモデルの前提</td></tr><tr><td data-label=\"用語\">事前学習済みモデル</td><td data-label=\"ひとことで\">事前学習を終えたモデル</td><td data-label=\"試験ではこう問われる\">転移学習の出発点</td></tr><tr><td data-label=\"用語\">自己教師あり学習</td><td data-label=\"ひとことで\"><strong>データから正解を自動生成</strong>して学習する</td><td data-label=\"試験ではこう問われる\"><strong>教師なし学習との違い</strong></td></tr><tr><td data-label=\"用語\">半教師あり学習</td><td data-label=\"ひとことで\">少量のラベル付きと大量のラベルなしを併用</td><td data-label=\"試験ではこう問われる\">自己教師ありとの区別</td></tr><tr><td data-label=\"用語\">転移学習</td><td data-label=\"ひとことで\">学習済みモデルを別タスクへ。主に<strong>出力側</strong>を学習</td><td data-label=\"試験ではこう問われる\">ファインチューニングとの違い</td></tr><tr><td data-label=\"用語\">ファインチューニング</td><td data-label=\"ひとことで\"><strong>より広い範囲の重みを更新</strong>して適応させる</td><td data-label=\"試験ではこう問われる\">転移学習との違い</td></tr><tr><td data-label=\"用語\">破滅的忘却</td><td data-label=\"ひとことで\">新しい学習で以前できたことを忘れる</td><td data-label=\"試験ではこう問われる\">ファインチューニングの副作用</td></tr><tr><td data-label=\"用語\">Zero-shot</td><td data-label=\"ひとことで\">例を<strong>0個</strong>。指示だけ</td><td data-label=\"試験ではこう問われる\">One/Few との区別</td></tr><tr><td data-label=\"用語\">One-shot</td><td data-label=\"ひとことで\">例を<strong>1個</strong></td><td data-label=\"試験ではこう問われる\">同上</td></tr><tr><td data-label=\"用語\">Few-shot</td><td data-label=\"ひとことで\">例を<strong>数個</strong></td><td data-label=\"試験ではこう問われる\">同上。<strong>重みは更新しない</strong></td></tr><tr><td data-label=\"用語\">マルチモーダル</td><td data-label=\"ひとことで\">複数の種類のデータを同時に扱う</td><td data-label=\"試験ではこう問われる\">単一モダリティとの対比</td></tr><tr><td data-label=\"用語\">Image Captioning</td><td data-label=\"ひとことで\">画像から説明文を生成する</td><td data-label=\"試験ではこう問われる\">VQAとの区別</td></tr><tr><td data-label=\"用語\">Visual Question Answering</td><td data-label=\"ひとことで\">画像について質問に答える</td><td data-label=\"試験ではこう問われる\">Image Captioning との区別</td></tr><tr><td data-label=\"用語\">Text-To-Image</td><td data-label=\"ひとことで\">文章から画像を生成する</td><td data-label=\"試験ではこう問われる\">DALL-E</td></tr><tr><td data-label=\"用語\">CLIP</td><td data-label=\"ひとことで\">画像とテキストを同じ空間に埋め込む</td><td data-label=\"試験ではこう問われる\"><strong>Zero-shot分類</strong>を可能にした</td></tr><tr><td data-label=\"用語\">DALL-E</td><td data-label=\"ひとことで\">文章から画像を生成するモデル</td><td data-label=\"試験ではこう問われる\">Text-To-Image の代表</td></tr><tr><td data-label=\"用語\">Flamingo</td><td data-label=\"ひとことで\">少数の例で対応できるマルチモーダルモデル</td><td data-label=\"試験ではこう問われる\">Few-shot との関係</td></tr><tr><td data-label=\"用語\">Unified-IO</td><td data-label=\"ひとことで\">多様な入出力を1つのモデルで扱う</td><td data-label=\"試験ではこう問われる\">統合の方向</td></tr><tr><td data-label=\"用語\">基盤モデル</td><td data-label=\"ひとことで\">大量データで学習し多様なタスクに適応できる大規模モデル</td><td data-label=\"試験ではこう問われる\">現在の中心概念</td></tr><tr><td data-label=\"用語\">マルチタスク学習</td><td data-label=\"ひとことで\">複数タスクを同時に学習する</td><td data-label=\"試験ではこう問われる\">知識の共有</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "実務との接続",
+          "html": "<ul><li><strong>「ファインチューニングすべきか」の判断</strong> — まず Few-shot（プロンプトに例）を試し、 足りなければファインチューニング、というのが定石。 <strong>重みを更新しない方が速くて安い</strong></li><li><strong>破滅的忘却は実際に起きる</strong> — 特定タスク向けにファインチューニングすると、 汎用的な会話能力が落ちることがある</li><li><strong>CLIP が Zero-shot 分類を可能にした意味</strong> — 分類したいカテゴリを <strong>テキストで書くだけ</strong>でよく、追加学習が要らない。 実務でのカテゴリ追加のコストが劇的に下がった</li></ul>"
+        },
+        {
+          "heading": "混同ペア",
+          "html": "<div class=\"tablewrap\"><table><thead><tr><th>これ</th><th>と、これ</th></tr></thead><tbody><tr><td data-label=\"これ\"><strong>転移学習</strong>＝主に出力側の層を学習</td><td data-label=\"と、これ\"><strong>ファインチューニング</strong>＝より広く重みを更新</td></tr><tr><td data-label=\"これ\"><strong>自己教師あり学習</strong>＝<strong>正解を自動生成</strong>する</td><td data-label=\"と、これ\"><strong>教師なし学習</strong>＝<strong>正解が存在しない</strong>（M2-02）</td></tr><tr><td data-label=\"これ\"><strong>半教師あり学習</strong>＝ラベルあり少量＋なし大量</td><td data-label=\"と、これ\">自己教師あり＝ラベルなしから正解を作る</td></tr><tr><td data-label=\"これ\"><strong>Zero-shot</strong>＝例0個</td><td data-label=\"と、これ\"><strong>One-shot</strong>＝1個／<strong>Few-shot</strong>＝数個</td></tr><tr><td data-label=\"これ\"><strong>Few-shot</strong>＝重みを<strong>更新しない</strong></td><td data-label=\"と、これ\">ファインチューニング＝重みを<strong>更新する</strong></td></tr><tr><td data-label=\"これ\"><strong>Image Captioning</strong>＝画像→説明文</td><td data-label=\"と、これ\"><strong>VQA</strong>＝画像＋質問→答え</td></tr><tr><td data-label=\"これ\"><strong>CLIP</strong>＝画像とテキストを同じ空間へ</td><td data-label=\"と、これ\"><strong>DALL-E</strong>＝文章から画像を生成</td></tr></tbody></table></div>"
+        },
+        {
+          "heading": "出典・確認メモ",
+          "html": "<p><strong>確認日 2026-08-03。</strong></p>\n<p>この講は<strong>手法の一般的な説明</strong>が中心で、年号を含まない。<code>docs/10-authoring-rules.md</code> の方針により、一般的な定義には個別の出典を付けていない。扱う用語と範囲は <code>docs/05-syllabus.md</code>（公式シラバス 技31・技32）に準拠している。</p>\n<p><strong>シラバス改訂の注意</strong>：Gシラバス2024 で「自己教師あり学習」「破滅的忘却」が<strong>追加</strong>されたキーワードにあたる（<code>docs/05-syllabus.md</code> の追加語一覧）。生成AI関連の増補の一環と考えられる。</p>\n<h4>未確認</h4>\n<ul><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>転移学習とファインチューニングの使い分け</strong>は文献によって揺れがあり、 「ファインチューニングは転移学習の一手法」とする整理も存在する。 <strong>G検定がどちらの整理で出題するかは確認できていない。</strong> 本講では「どこまで重みを更新するか」の対比として説明している。</li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>Flamingo・Unified-IO の具体的な特徴</strong>は、名前と大まかな位置づけまでにとどめている。 <strong>個別の仕組みまで問われるかは確認していない。</strong></li><li class=\"todo\"><span class=\"todo__mark\">未確認</span><strong>CLIP の学習方法</strong>（画像とテキストの対を使った対照学習）は M3-02 の Contrastive Loss と関係するが、 <strong>シラバスがこの結びつきを問うかは確認していない。</strong></li></ul>"
+        },
+        {
+          "heading": "この講の要点3行",
+          "html": "<ul><li><strong>転移学習＝主に出力側／ファインチューニング＝より広く更新</strong>。副作用が<strong>破滅的忘却</strong></li><li><strong>自己教師あり学習は正解を自動生成する</strong>（教師なし学習＝正解が存在しない、とは違う）</li><li><strong>Zero/One/Few-shot は例の数</strong>。<strong>重みを更新しない</strong>点がファインチューニングとの決定的な違い</li></ul>"
+        }
+      ]
     }
   ]
 };
