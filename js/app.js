@@ -207,7 +207,7 @@
 
     var state, cls;
     if (p.total > 0 && p.attempted > 0) {
-      state = p.pct + "%";
+      state = p.pct + "% (" + p.done + "/" + p.total + ")";
       cls = p.pct >= 70 ? "lesson__state--ok" : "lesson__state--warn";
     } else if (meta.hasText || p.total > 0) {
       state = "未着手";
@@ -273,6 +273,10 @@
     $("l-fill").style.width = p.pct + "%";
     $("l-fill").className = "bar__fill" + (p.pct < 70 ? " bar__fill--warn" : "");
     $("l-val").textContent = p.pct + "%";
+    $("l-detail").textContent = p.total
+      ? "直近で正解 " + p.done + " / 全" + p.total + "問" +
+        (p.attempted < p.total ? "（未挑戦 " + (p.total - p.attempted) + "問）" : "")
+      : "";
 
     $("btn-read").disabled = !t;
     $("btn-read").textContent = t ? "教本を読む" : "教本はまだありません";
