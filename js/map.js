@@ -117,7 +117,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能とは",
       "hasText": true,
-      "questions": 5
+      "questions": 12
     },
     {
       "id": "M1-02",
@@ -128,7 +128,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能とは",
       "hasText": true,
-      "questions": 8
+      "questions": 13
     },
     {
       "id": "M1-03",
@@ -139,7 +139,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能をめぐる動向",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M1-04",
@@ -150,7 +150,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能をめぐる動向",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M1-05",
@@ -162,7 +162,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能をめぐる動向",
       "hasText": true,
-      "questions": 6
+      "questions": 10
     },
     {
       "id": "M2-01",
@@ -173,7 +173,7 @@ window.MAP_DATA = {
       ],
       "area": "機械学習の概要",
       "hasText": true,
-      "questions": 7
+      "questions": 12
     },
     {
       "id": "M2-02",
@@ -184,7 +184,7 @@ window.MAP_DATA = {
       ],
       "area": "機械学習の概要",
       "hasText": true,
-      "questions": 6
+      "questions": 10
     },
     {
       "id": "M2-03",
@@ -195,7 +195,7 @@ window.MAP_DATA = {
       ],
       "area": "機械学習の概要",
       "hasText": true,
-      "questions": 6
+      "questions": 10
     },
     {
       "id": "M2-04",
@@ -206,7 +206,7 @@ window.MAP_DATA = {
       ],
       "area": "機械学習の概要",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M3-01",
@@ -217,7 +217,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M3-02",
@@ -229,7 +229,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 6
+      "questions": 10
     },
     {
       "id": "M3-03",
@@ -240,7 +240,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 5
+      "questions": 8
     },
     {
       "id": "M3-04",
@@ -252,7 +252,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M4-01",
@@ -264,7 +264,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M4-02",
@@ -277,7 +277,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 6
+      "questions": 10
     },
     {
       "id": "M4-03",
@@ -289,7 +289,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M4-04",
@@ -301,7 +301,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M5-01",
@@ -312,7 +312,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M5-02",
@@ -323,7 +323,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M5-03",
@@ -334,7 +334,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M5-04",
@@ -346,7 +346,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M5-05",
@@ -358,7 +358,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 7
+      "questions": 11
     },
     {
       "id": "M5-06",
@@ -370,7 +370,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M6-01",
@@ -381,7 +381,7 @@ window.MAP_DATA = {
       ],
       "area": "AIの社会実装に向けて",
       "hasText": true,
-      "questions": 6
+      "questions": 9
     },
     {
       "id": "M6-02",
@@ -392,7 +392,7 @@ window.MAP_DATA = {
       ],
       "area": "AIの社会実装に向けて",
       "hasText": true,
-      "questions": 7
+      "questions": 10
     },
     {
       "id": "M6-03",
@@ -403,7 +403,7 @@ window.MAP_DATA = {
       ],
       "area": "AIに必要な数理・統計知識",
       "hasText": true,
-      "questions": 12
+      "questions": 15
     },
     {
       "id": "M7-01",
@@ -414,7 +414,7 @@ window.MAP_DATA = {
       ],
       "area": "AIに関する法律と契約",
       "hasText": true,
-      "questions": 10
+      "questions": 13
     },
     {
       "id": "M7-02",
@@ -428,7 +428,7 @@ window.MAP_DATA = {
       ],
       "area": "AIに関する法律と契約",
       "hasText": true,
-      "questions": 11
+      "questions": 14
     },
     {
       "id": "M7-03",
@@ -440,7 +440,7 @@ window.MAP_DATA = {
       ],
       "area": "AIに関する法律と契約",
       "hasText": true,
-      "questions": 10
+      "questions": 13
     },
     {
       "id": "M8-01",
@@ -453,7 +453,7 @@ window.MAP_DATA = {
       ],
       "area": "AI倫理・AIガバナンス",
       "hasText": true,
-      "questions": 10
+      "questions": 13
     },
     {
       "id": "M8-02",
@@ -466,7 +466,7 @@ window.MAP_DATA = {
       ],
       "area": "AI倫理・AIガバナンス",
       "hasText": true,
-      "questions": 11
+      "questions": 14
     },
     {
       "id": "M8-03",
@@ -481,7 +481,7 @@ window.MAP_DATA = {
       ],
       "area": "AI倫理・AIガバナンス",
       "hasText": true,
-      "questions": 13
+      "questions": 16
     }
   ]
 };

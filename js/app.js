@@ -106,14 +106,32 @@
     });
   }
 
+  /* 同じ知識を別の形で問う問題（正しいもの／誤っているものを選ぶ等）は
+     同じ group にまとめてある。1回の演習では各グループから1問だけ出す。
+     毎回どの形が出るか変わるので、同じ問題の繰り返しになりにくい */
+  function onePerGroup(qs) {
+    var byGroup = {};
+    qs.forEach(function (q) {
+      var g = q.group || q.id;
+      (byGroup[g] = byGroup[g] || []).push(q);
+    });
+    return Object.keys(byGroup).map(function (g) {
+      var v = byGroup[g];
+      return v[Math.floor(Math.random() * v.length)];
+    });
+  }
+
   function pick(mode, lessonId) {
     if (mode === "lesson") {
-      return shuffle(DATA.questions.filter(function (q) { return q.lesson === lessonId; }));
+      return shuffle(onePerGroup(
+        DATA.questions.filter(function (q) { return q.lesson === lessonId; })
+      ));
     }
+    // 苦手復習は「間違えた問題そのもの」を出したいので、グループでまとめない
     if (mode === "weak") {
       return shuffle(weakQuestions());
     }
-    return shuffle(DATA.questions).slice(0, TEST_SIZE);
+    return shuffle(onePerGroup(DATA.questions)).slice(0, TEST_SIZE);
   }
 
   // ---- 画面遷移 ------------------------------------------------------------
@@ -236,21 +254,34 @@
 
   var currentLesson = null;
 
+  /* 習得度はグループ単位で数える。
+     同じ知識の別形式を全部解かないと100%にならないのは実態に合わないため、
+     グループ内のどれか1問に直近正解していれば「その知識は取れている」と見る */
   function lessonProgress(id) {
     var qs = DATA.questions.filter(function (q) { return q.lesson === id; });
-    var done = 0;
-    var attempted = 0;
+    var groups = {};
     qs.forEach(function (q) {
+      var g = q.group || q.id;
       var h = store.history[q.id];
-      if (!h) return;
-      attempted += 1;
-      if (h.last) done += 1;
+      var cur = groups[g] || { done: false, attempted: false };
+      if (h) {
+        cur.attempted = true;
+        if (h.last) cur.done = true;
+      }
+      groups[g] = cur;
+    });
+    var keys = Object.keys(groups);
+    var done = 0, attempted = 0;
+    keys.forEach(function (g) {
+      if (groups[g].done) done += 1;
+      if (groups[g].attempted) attempted += 1;
     });
     return {
       done: done,
       attempted: attempted,
-      total: qs.length,
-      pct: qs.length ? Math.round((done / qs.length) * 100) : 0
+      total: keys.length,
+      pool: qs.length,
+      pct: keys.length ? Math.round((done / keys.length) * 100) : 0
     };
   }
 
@@ -274,8 +305,9 @@
     $("l-fill").className = "bar__fill" + (p.pct < 70 ? " bar__fill--warn" : "");
     $("l-val").textContent = p.pct + "%";
     $("l-detail").textContent = p.total
-      ? "直近で正解 " + p.done + " / 全" + p.total + "問" +
-        (p.attempted < p.total ? "（未挑戦 " + (p.total - p.attempted) + "問）" : "")
+      ? "直近で正解 " + p.done + " / 全" + p.total + "項目" +
+        (p.attempted < p.total ? "（未挑戦 " + (p.total - p.attempted) + "項目）" : "") +
+        (p.pool > p.total ? "　問題は全" + p.pool + "問から毎回選ばれます" : "")
       : "";
 
     $("btn-read").disabled = !t;
