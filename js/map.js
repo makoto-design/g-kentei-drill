@@ -162,7 +162,7 @@ window.MAP_DATA = {
       ],
       "area": "人工知能をめぐる動向",
       "hasText": true,
-      "questions": 10
+      "questions": 15
     },
     {
       "id": "M2-01",
@@ -184,7 +184,7 @@ window.MAP_DATA = {
       ],
       "area": "機械学習の概要",
       "hasText": true,
-      "questions": 10
+      "questions": 14
     },
     {
       "id": "M2-03",
@@ -195,7 +195,7 @@ window.MAP_DATA = {
       ],
       "area": "機械学習の概要",
       "hasText": true,
-      "questions": 10
+      "questions": 13
     },
     {
       "id": "M2-04",
@@ -217,7 +217,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 9
+      "questions": 12
     },
     {
       "id": "M3-02",
@@ -229,7 +229,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 10
+      "questions": 14
     },
     {
       "id": "M3-03",
@@ -240,7 +240,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの概要",
       "hasText": true,
-      "questions": 8
+      "questions": 13
     },
     {
       "id": "M3-04",
