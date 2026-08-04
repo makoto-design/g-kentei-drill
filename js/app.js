@@ -332,8 +332,28 @@
   var session = null;
   var timerId = null;
 
+  /* 出題のたびに選択肢を混ぜる。
+     元データは正解が2番目に偏っていたため、位置で覚えられてしまっていた。
+     answer と why の添字も並べ替えに合わせて振り直す。 */
+  function shuffleOptions(q) {
+    var order = shuffle([0, 1, 2, 3]);
+    var opts = [];
+    var why = {};
+    var answer = 0;
+    order.forEach(function (from, to) {
+      opts.push(q.options[from]);
+      if (from === q.answer) answer = to;
+      else if (q.why && q.why[from] !== undefined) why[to] = q.why[from];
+    });
+    return {
+      id: q.id, lesson: q.lesson, module: q.module, topic: q.topic,
+      text: q.text, explanation: q.explanation,
+      options: opts, answer: answer, why: why
+    };
+  }
+
   function start(mode, lessonId) {
-    var qs = pick(mode, lessonId);
+    var qs = pick(mode, lessonId).map(shuffleOptions);
     if (qs.length === 0) return;
 
     session = {
