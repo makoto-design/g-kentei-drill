@@ -264,7 +264,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 9
+      "questions": 11
     },
     {
       "id": "M4-02",
@@ -277,7 +277,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 10
+      "questions": 12
     },
     {
       "id": "M4-03",
@@ -301,7 +301,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの要素技術",
       "hasText": true,
-      "questions": 9
+      "questions": 10
     },
     {
       "id": "M5-01",
@@ -312,7 +312,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 9
+      "questions": 11
     },
     {
       "id": "M5-02",
@@ -323,7 +323,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 9
+      "questions": 11
     },
     {
       "id": "M5-03",
@@ -334,7 +334,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 9
+      "questions": 11
     },
     {
       "id": "M5-04",
@@ -346,7 +346,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 11
+      "questions": 12
     },
     {
       "id": "M5-05",
@@ -358,7 +358,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 11
+      "questions": 12
     },
     {
       "id": "M5-06",
@@ -370,7 +370,7 @@ window.MAP_DATA = {
       ],
       "area": "ディープラーニングの応用例",
       "hasText": true,
-      "questions": 9
+      "questions": 11
     },
     {
       "id": "M6-01",
@@ -381,7 +381,7 @@ window.MAP_DATA = {
       ],
       "area": "AIの社会実装に向けて",
       "hasText": true,
-      "questions": 9
+      "questions": 11
     },
     {
       "id": "M6-02",
@@ -481,7 +481,7 @@ window.MAP_DATA = {
       ],
       "area": "AI倫理・AIガバナンス",
       "hasText": true,
-      "questions": 16
+      "questions": 19
     }
   ]
 };
