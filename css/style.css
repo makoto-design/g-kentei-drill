@@ -478,3 +478,45 @@ main {
   /* 1列目は見出し扱いにして、カードの頭であることを分かりやすくする */
   .prose tr td:first-child { background: var(--accent-weak); font-weight: 700; }
 }
+
+
+/* ---- 図 ----
+   本文中の図はインラインSVG。外部ファイルを持たないのでオフラインでも出る。
+   色は currentColor と CSS変数で指定してあるので、ダークモードにも追従する。 */
+
+.figure {
+  margin: 20px 0;
+  padding: 14px 10px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.figure__cap {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* 図の中で使う色。本文の配色に合わせる */
+.figure svg { color: var(--text); }
+.fig-accent { fill: var(--accent); }
+.fig-accent-s { stroke: var(--accent); }
+.fig-muted { fill: var(--muted); }
+.fig-line { stroke: var(--border); }
+.fig-box { fill: var(--bg); stroke: currentColor; }
+.fig-t { fill: currentColor; font-size: 13px; font-family: inherit; }
+.fig-t--sm { font-size: 11px; }
+.fig-t--b { font-weight: 700; }
+.fig-t--m { fill: var(--muted); font-size: 11px; }
