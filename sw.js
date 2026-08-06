@@ -9,7 +9,7 @@
  *     変化が少なく、毎回取りに行く必要がない。
  * どちらもオフライン時はキャッシュから返すので、機内モードでも動く。
  */
-const CACHE_VERSION = "gken-202608061318";
+const CACHE_VERSION = "gken-202608061746";
 
 const PRECACHE = [
   "./",
@@ -61,7 +61,13 @@ self.addEventListener("fetch", (e) => {
           return res;
         })
         .catch(() =>
-          caches.match(e.request).then((hit) => hit || caches.match("./index.html"))
+          /* オフライン時。index.html は js/lessons.js?v=... のように世代を付けて
+             読み込むが、PRECACHE はクエリなしで保存してある。
+             ignoreSearch を付けないとここで取り逃がし、
+             JSの代わりにindex.htmlを返してアプリが壊れる。 */
+          caches
+            .match(e.request, { ignoreSearch: true })
+            .then((hit) => hit || caches.match("./index.html"))
         )
     );
     return;
