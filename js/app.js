@@ -715,8 +715,31 @@
   show("home");
 
   if ("serviceWorker" in navigator) {
+    /* 開いた時点ですでに制御されているか。
+       初回訪問（未登録）では null になる。下のリロード判定に使う。 */
+    var hadController = !!navigator.serviceWorker.controller;
+    var reloaded = false;
+
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("sw.js").catch(function () { /* オフライン化は諦める */ });
+      navigator.serviceWorker
+        .register("sw.js")
+        .then(function (reg) {
+          reg.update();  // 開くたびに更新を確認する
+        })
+        .catch(function () { /* オフライン化は諦める */ });
+    });
+
+    /* 新しい Service Worker が制御を取ったら、1度だけ画面を作り直す。
+       これがないと、教材を直してデプロイしても、
+       すでに開いたことのある利用者には古い内容が出続ける。
+       index.html ごとブラウザに残り、古いスクリプトを読み続けるため。
+
+       初回インストール時は hadController が false になるので何もしない。
+       そこでリロードすると、初めて開いた人が無駄に再読み込みされる。 */
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      window.location.reload();
     });
   }
 })();
