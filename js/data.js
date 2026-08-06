@@ -2,7 +2,7 @@
    原本は g-kentei-study の quiz/*.js。
    更新したら sw.js の CACHE_VERSION を上げること。 */
 window.QUIZ_DATA = {
-  "generatedAt": "2026-08-05",
+  "generatedAt": "2026-08-06",
   "lessons": [
     {
       "id": "M1-01",
