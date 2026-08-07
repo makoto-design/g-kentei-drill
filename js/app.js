@@ -345,12 +345,24 @@
     });
   }
 
+  /* 付録IDで引く。本文中のショートカットリンクはこちらを使う */
+  function appendixById(apxId) {
+    var list = TEXT.appendices || [];
+    for (var i = 0; i < list.length; i++) if (list[i].id === apxId) return list[i];
+    return null;
+  }
+
+  function showAppendix(a) {
+    if (!a) return;
+    currentLesson = a.lesson;
+    renderProse($("appendix-body"), a.title, a.sections);
+    show("appendix", a.title);
+  }
+
   function openAppendix(id) {
     var a = appendixOf(id);
     if (!a) return;
-    currentLesson = id;
-    renderProse($("appendix-body"), a.title, a.sections);
-    show("appendix", a.title);
+    showAppendix(a);
   }
 
   function openRead(id) {
@@ -702,6 +714,15 @@
   $("btn-drill").addEventListener("click", function () { start("lesson", currentLesson); });
   $("btn-read-drill").addEventListener("click", function () { start("lesson", currentLesson); });
   $("btn-read-appendix").addEventListener("click", function () { openAppendix(currentLesson); });
+
+  /* 本文中の「付録を見る」リンク。
+     本文は差し替わるので、個々のリンクではなく入れ物側で受ける。 */
+  $("read-body").addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("[data-appendix]") : null;
+    if (!a) return;
+    e.preventDefault();
+    showAppendix(appendixById(a.getAttribute("data-appendix")));
+  });
   $("btn-appendix-back").addEventListener("click", function () { openRead(currentLesson); });
   $("btn-read-next").addEventListener("click", function () {
     var nx = nextLessonId(currentLesson);
