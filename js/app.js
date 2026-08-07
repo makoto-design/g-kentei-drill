@@ -136,7 +136,7 @@
 
   // ---- 画面遷移 ------------------------------------------------------------
 
-  var VIEWS = ["home", "lesson", "read", "quiz", "result", "stats"];
+  var VIEWS = ["home", "lesson", "read", "appendix", "quiz", "result", "stats"];
 
   function show(name, title) {
     VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
@@ -318,29 +318,51 @@
     show("lesson", id);
   }
 
-  function openRead(id) {
-    var t = textOf(id);
-    if (!t) return;
-    currentLesson = id;
+  /* 講にひも付く付録を返す。無ければ null */
+  function appendixOf(id) {
+    var list = TEXT.appendices || [];
+    for (var i = 0; i < list.length; i++) if (list[i].lesson === id) return list[i];
+    return null;
+  }
 
-    var body = $("read-body");
-    body.innerHTML = "";
-
+  /* 節を prose として流し込む。教本と付録で共通 */
+  function renderProse(el, title, sections) {
+    el.innerHTML = "";
     var h = document.createElement("h2");
     h.className = "prose__title";
-    h.textContent = t.title;
-    body.appendChild(h);
+    h.textContent = title;
+    el.appendChild(h);
 
-    t.sections.forEach(function (s) {
+    sections.forEach(function (s) {
       var sec = document.createElement("section");
       var sh = document.createElement("h3");
       sh.textContent = s.heading;
       sec.appendChild(sh);
       var div = document.createElement("div");
-      div.innerHTML = s.html; // 生成元は自分たちの lessons/*.md
+      div.innerHTML = s.html; // 生成元は自分たちの lessons/*.md と appendix/*.md
       sec.appendChild(div);
-      body.appendChild(sec);
+      el.appendChild(sec);
     });
+  }
+
+  function openAppendix(id) {
+    var a = appendixOf(id);
+    if (!a) return;
+    currentLesson = id;
+    renderProse($("appendix-body"), a.title, a.sections);
+    show("appendix", a.title);
+  }
+
+  function openRead(id) {
+    var t = textOf(id);
+    if (!t) return;
+    currentLesson = id;
+
+    renderProse($("read-body"), t.title, t.sections);
+
+    var apx = appendixOf(id);
+    $("btn-read-appendix").hidden = !apx;
+    if (apx) $("btn-read-appendix").textContent = apx.title;
 
     var p = lessonProgress(id);
     $("btn-read-drill").hidden = p.total === 0;
@@ -679,13 +701,16 @@
   $("btn-read").addEventListener("click", function () { openRead(currentLesson); });
   $("btn-drill").addEventListener("click", function () { start("lesson", currentLesson); });
   $("btn-read-drill").addEventListener("click", function () { start("lesson", currentLesson); });
+  $("btn-read-appendix").addEventListener("click", function () { openAppendix(currentLesson); });
+  $("btn-appendix-back").addEventListener("click", function () { openRead(currentLesson); });
   $("btn-read-next").addEventListener("click", function () {
     var nx = nextLessonId(currentLesson);
     if (nx) openRead(nx);
   });
 
   $("btn-back").addEventListener("click", function () {
-    // 教本からは講のメニューへ戻る。それ以外はホームへ
+    // 付録からは教本へ、教本からは講のメニューへ戻る。それ以外はホームへ
+    if (!$("view-appendix").hidden) { openRead(currentLesson); return; }
     if (!$("view-read").hidden) { openLesson(currentLesson); return; }
     if (!$("view-quiz").hidden && session && session.i > 0 &&
         !confirm("演習を中断しますか。ここまでの解答は記録されています。")) return;
