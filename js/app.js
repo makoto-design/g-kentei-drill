@@ -138,12 +138,14 @@
 
   var VIEWS = ["home", "lesson", "read", "appendix", "quiz", "result", "stats"];
 
-  function show(name, title) {
+  /* scrollY を渡すとその位置で表示する。既定は先頭。
+     付録から本文へ戻るときだけ、読んでいた場所へ返すために使う。 */
+  function show(name, title, scrollY) {
     VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
     $("topbar-title").textContent = title || "G検定ドリル";
     $("btn-back").hidden = name === "home";
     $("btn-stats").hidden = name !== "home";
-    window.scrollTo(0, 0);
+    window.scrollTo(0, scrollY || 0);
   }
 
   // ---- ホーム --------------------------------------------------------------
@@ -352,8 +354,12 @@
     return null;
   }
 
+  /* 付録へ移る直前に本文のどこを読んでいたか。戻ったときここへ返す */
+  var readScroll = 0;
+
   function showAppendix(a) {
     if (!a) return;
+    if (!$("view-read").hidden) readScroll = window.scrollY;
     currentLesson = a.lesson;
     renderProse($("appendix-body"), a.title, a.sections);
     show("appendix", a.title);
@@ -365,7 +371,7 @@
     showAppendix(a);
   }
 
-  function openRead(id) {
+  function openRead(id, scrollY) {
     var t = textOf(id);
     if (!t) return;
     currentLesson = id;
@@ -384,7 +390,7 @@
     $("btn-read-next").hidden = !nx;
     if (nx) $("btn-read-next").textContent = "次の講を読む（" + nx + "）";
 
-    show("read", id);
+    show("read", id, scrollY);
   }
 
   function nextLessonId(id) {
@@ -723,7 +729,7 @@
     e.preventDefault();
     showAppendix(appendixById(a.getAttribute("data-appendix")));
   });
-  $("btn-appendix-back").addEventListener("click", function () { openRead(currentLesson); });
+  $("btn-appendix-back").addEventListener("click", function () { openRead(currentLesson, readScroll); });
   $("btn-read-next").addEventListener("click", function () {
     var nx = nextLessonId(currentLesson);
     if (nx) openRead(nx);
@@ -731,7 +737,7 @@
 
   $("btn-back").addEventListener("click", function () {
     // 付録からは教本へ、教本からは講のメニューへ戻る。それ以外はホームへ
-    if (!$("view-appendix").hidden) { openRead(currentLesson); return; }
+    if (!$("view-appendix").hidden) { openRead(currentLesson, readScroll); return; }
     if (!$("view-read").hidden) { openLesson(currentLesson); return; }
     if (!$("view-quiz").hidden && session && session.i > 0 &&
         !confirm("演習を中断しますか。ここまでの解答は記録されています。")) return;
