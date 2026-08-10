@@ -23,14 +23,17 @@
   var store = load();
 
   function load() {
-    var empty = { history: {}, sessions: [], days: {} };
+    /* reads は教本をどこまで読んだか（講ID → スクロール位置）。
+       古い保存にはこの項目がないので、無ければ空で補う。 */
+    var empty = { history: {}, sessions: [], days: {}, reads: {} };
     try {
       var s = JSON.parse(localStorage.getItem(STORE_KEY));
       if (!s || typeof s !== "object") return empty;
       return {
         history: s.history || {},
         sessions: s.sessions || [],
-        days: s.days || {}
+        days: s.days || {},
+        reads: s.reads || {}
       };
     } catch (e) {
       return empty;
@@ -141,6 +144,11 @@
   /* scrollY を渡すとその位置で表示する。既定は先頭。
      付録から本文へ戻るときだけ、読んでいた場所へ返すために使う。 */
   function show(name, title, scrollY) {
+    /* 教本から離れる直前に、読みかけ位置を確定して書き出す。
+       スクロール中の保存は間引いているので、
+       直後に戻るを押されると最後の移動を取り逃がすため。 */
+    if (name !== "read" && !$("view-read").hidden) rememberReadPos();
+
     VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
     $("topbar-title").textContent = title || "G検定ドリル";
     $("btn-back").hidden = name === "home";
@@ -371,9 +379,31 @@
     showAppendix(a);
   }
 
+  /* 教本の読みかけ位置。
+     戻るを押さずにアプリを閉じても残るよう、スクロール中に随時保存する。
+     最後まで読み切った講は消して、次に開いたとき先頭から始まるようにする。 */
+  var readSaveTimer = null;
+
+  function rememberReadPos() {
+    if ($("view-read").hidden) return;
+    var y = window.scrollY;
+    var bottom = document.documentElement.scrollHeight - window.innerHeight - 80;
+    if (y < 200 || y >= bottom) delete store.reads[currentLesson];
+    else store.reads[currentLesson] = y;
+    save();
+  }
+
+  window.addEventListener("scroll", function () {
+    if ($("view-read").hidden) return;
+    clearTimeout(readSaveTimer);
+    readSaveTimer = setTimeout(rememberReadPos, 300);
+  });
+
   function openRead(id, scrollY) {
     var t = textOf(id);
     if (!t) return;
+    /* 明示的な指定（付録から戻る）がなければ、前回の続きから開く */
+    if (scrollY === undefined) scrollY = store.reads[id] || 0;
     currentLesson = id;
 
     renderProse($("read-body"), t.title, t.sections);
@@ -757,7 +787,7 @@
 
   $("btn-reset").addEventListener("click", function () {
     if (!confirm("学習記録をすべて消します。取り消せません。よろしいですか。")) return;
-    store = { history: {}, sessions: [], days: {} };
+    store = { history: {}, sessions: [], days: {}, reads: {} };
     save();
     renderStats();
     renderHome();
