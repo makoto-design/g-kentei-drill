@@ -39,6 +39,12 @@
 
 * { box-sizing: border-box; }
 
+/* hidden 属性を確実に効かせる。
+   ブラウザ既定の [hidden]{display:none} は属性セレクタなので詳細度が
+   クラスと同点で、.btn{display:block} のような指定に負けてしまう。
+   実際、付録のない講で「付録を読む」ボタンが hidden なのに出ていた。 */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--bg);
