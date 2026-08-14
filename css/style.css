@@ -235,8 +235,6 @@ main {
 .lesson:hover { border-color: var(--accent); }
 .lesson__id { font-weight: 700; font-size: 0.8rem; color: var(--accent); flex-shrink: 0; }
 .lesson__title { flex: 1; font-size: 0.9rem; }
-.lesson__meter { width: 56px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
-.lesson__meter i { display: block; height: 100%; background: var(--ok); }
 
 /* ---- 出題 ---- */
 

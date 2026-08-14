@@ -1,7 +1,7 @@
 /* 自動生成ファイル。直接編集しない。
    原本は g-kentei-study の docs/05-syllabus.md と docs/02-curriculum.md。 */
 window.MAP_DATA = {
-  "generatedAt": "2026-08-13",
+  "generatedAt": "2026-08-14",
   "totalItems": 55,
   "areas": [
     {
