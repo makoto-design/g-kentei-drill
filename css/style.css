@@ -410,7 +410,7 @@ main {
    本文の途中にあっても「別の読み物へ移る」と分かる見た目にする */
 .prose a.apxlink {
   display: inline-block;
-  padding: 2px 10px 2px 8px;
+  padding: 8px 14px 8px 12px;
   border: 1px solid var(--accent);
   border-radius: 999px;
   font-size: 0.85em;
