@@ -147,14 +147,80 @@
     /* 教本から離れる直前に、読みかけ位置を確定して書き出す。
        スクロール中の保存は間引いているので、
        直後に戻るを押されると最後の移動を取り逃がすため。 */
-    if (name !== "read" && !$("view-read").hidden) rememberReadPos();
+    if (name !== "read" && !$("view-read").hidden) {
+      rememberReadPos();
+      /* 戻ってきたとき同じ位置に返すため、いま居る履歴にも位置を記録する。
+         pushView は画面を開いた時点の位置しか持っていないため。 */
+      if (history.state && history.state.v === "read") {
+        history.replaceState({ v: "read", l: currentLesson, y: window.scrollY }, "");
+      }
+    }
 
     VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
     $("topbar-title").textContent = title || "G検定ドリル";
     $("btn-back").hidden = name === "home";
     $("btn-stats").hidden = name !== "home";
     window.scrollTo(0, scrollY || 0);
+    pushView(name, scrollY);
   }
+
+  /* ---- 端末の戻る操作 ------------------------------------------------------
+
+     画面を切り替えても履歴を積んでいなかったため、
+     スマホの戻るボタンでアプリごと閉じてしまっていた。
+     画面ごとに履歴を1件積み、popstate で対応する画面へ戻す。
+
+     URLは変えない（pushState の第2引数を省く）。
+     GitHub Pages は静的配信なので、URLを変えると再読み込みで404になるため。 */
+  /* 戻ったときの位置は自分で決める。
+     既定の "auto" のままだと、こちらが scrollTo したあとに
+     ブラウザが元の位置を復元し直して上書きしてしまう。 */
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+  var popping = false;
+
+  function pushView(name, scrollY) {
+    if (popping) return;
+    var st = { v: name, l: currentLesson, y: scrollY || 0 };
+    // 最初の1件だけは積まずに置き換える。ホームで戻ればアプリを閉じてよい
+    if (history.state) history.pushState(st, "");
+    else history.replaceState(st, "");
+  }
+
+  function restoreView(st) {
+    switch (st.v) {
+      case "lesson": openLesson(st.l); return;
+      case "read": openRead(st.l, st.y); return;
+      case "appendix": openAppendix(st.l); return;
+      case "stats": renderStats(); show("stats", "成績"); return;
+      /* 演習と結果は履歴で復元しない。
+         中断した出題の途中に戻しても続きが無く、記録もすでに残っているため。
+         講のメニューへ逃がす。 */
+      case "quiz":
+      case "result":
+        if (st.l) { openLesson(st.l); return; }
+        break;
+    }
+    renderHome();
+    show("home");
+  }
+
+  window.addEventListener("popstate", function (e) {
+    // 演習の途中なら確認する。続ける場合は履歴を積み直して現状を保つ
+    /* i は「次へ」で進むので、1問目に答えただけではまだ 0。
+       answered も見ないと、1問答えた直後の戻るが素通りしてしまう。 */
+    if (!$("view-quiz").hidden && session && (session.i > 0 || session.answered) &&
+        !confirm("演習を中断しますか。ここまでの解答は記録されています。")) {
+      history.pushState({ v: "quiz", l: currentLesson, y: 0 }, "");
+      return;
+    }
+    stopTimer();
+    if (!$("view-quiz").hidden) session = null;
+
+    popping = true;
+    try { restoreView(e.state || { v: "home" }); }
+    finally { popping = false; }
+  });
 
   // ---- ホーム --------------------------------------------------------------
 
@@ -362,12 +428,9 @@
     return null;
   }
 
-  /* 付録へ移る直前に本文のどこを読んでいたか。戻ったときここへ返す */
-  var readScroll = 0;
-
   function showAppendix(a) {
     if (!a) return;
-    if (!$("view-read").hidden) readScroll = window.scrollY;
+    /* 本文のどこから来たかは show() が履歴に焼き付けるので、ここでは覚えなくてよい */
     currentLesson = a.lesson;
     renderProse($("appendix-body"), a.title, a.sections);
     show("appendix", a.title);
@@ -759,23 +822,16 @@
     e.preventDefault();
     showAppendix(appendixById(a.getAttribute("data-appendix")));
   });
-  $("btn-appendix-back").addEventListener("click", function () { openRead(currentLesson, readScroll); });
+  $("btn-appendix-back").addEventListener("click", function () { history.back(); });
   $("btn-read-next").addEventListener("click", function () {
     var nx = nextLessonId(currentLesson);
     if (nx) openRead(nx);
   });
 
-  $("btn-back").addEventListener("click", function () {
-    // 付録からは教本へ、教本からは講のメニューへ戻る。それ以外はホームへ
-    if (!$("view-appendix").hidden) { openRead(currentLesson, readScroll); return; }
-    if (!$("view-read").hidden) { openLesson(currentLesson); return; }
-    if (!$("view-quiz").hidden && session && session.i > 0 &&
-        !confirm("演習を中断しますか。ここまでの解答は記録されています。")) return;
-    stopTimer();
-    session = null;
-    renderHome();
-    show("home");
-  });
+  /* 画面内の戻るも履歴を1つ戻すだけにする。
+     直接画面を切り替えると履歴がもう1件積まれ、
+     端末の戻る操作と噛み合わなくなるため。行き先の判定は popstate 側にある。 */
+  $("btn-back").addEventListener("click", function () { history.back(); });
 
   $("btn-export").addEventListener("click", function () {
     var btn = $("btn-export");
