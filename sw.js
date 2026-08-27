@@ -9,7 +9,7 @@
  *     変化が少なく、毎回取りに行く必要がない。
  * どちらもオフライン時はキャッシュから返すので、機内モードでも動く。
  */
-const CACHE_VERSION = "gken-e9fc49e185";
+const CACHE_VERSION = "gken-a1042227be";
 
 const PRECACHE = [
   "./",
