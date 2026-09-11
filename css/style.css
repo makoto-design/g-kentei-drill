@@ -399,6 +399,8 @@ main {
 }
 
 .prose h4 { font-size: 0.95rem; margin: 20px 0 6px; }
+/* #### は節の中の小見出し。h4 より一段弱く、本文より少し強い */
+.prose h5 { font-size: 0.9rem; margin: 16px 0 6px; color: var(--muted); font-weight: 700; }
 .prose p { margin: 0 0 12px; }
 .prose ul, .prose ol { margin: 0 0 14px; padding-left: 1.3em; }
 .prose li { margin-bottom: 6px; }
