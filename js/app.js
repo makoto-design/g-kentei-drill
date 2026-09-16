@@ -1,6 +1,7 @@
 /* G検定ドリル — アプリ本体
  *
- * 学習記録は localStorage にのみ保存する。外部送信はしない。
+ * 学習記録は localStorage にのみ保存する。ユーザーが共有ボタンを押した場合を除き、
+ * 外部送信はしない。
  * 問題データは js/data.js（g-kentei-study の quiz/*.js から生成）。
  */
 
@@ -15,6 +16,14 @@
   var TEST_SIZE = 20;
   var TEST_SECONDS = 14 * 60; // 本番は約41秒/問。20問なら約14分
   var WEAK_THRESHOLD = 0.7;
+  var SESSION_HISTORY_LIMIT = 300;
+  var SESSION_DETAIL_LIMIT = 100;
+  var RECENT_SESSION_EXPORT_LIMIT = 10;
+  var REVIEW_PROMPT = [
+    "この結果を分析して、苦手な内容を優先して説明してください。",
+    "その後、G検定レベルの4択問題を1問ずつ出してください。",
+    "簡単すぎる選択肢は避け、正解位置が偏らないようにしてください。"
+  ].join("\n");
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -87,6 +96,54 @@
       c += store.history[id].c;
     }
     return { a: a, c: c };
+  }
+
+  function formatDate(ts) {
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return "不明";
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+      " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function modeLabel(mode, lessonId) {
+    if (mode === "test") return "本番形式テスト";
+    if (mode === "weak") return "苦手復習";
+    if (mode === "random") return "ランダム20問";
+    if (mode === "lesson") return "講別演習" + (lessonId ? "（" + lessonId + "）" : "");
+    return mode || "不明";
+  }
+
+  function questionById(id) {
+    for (var i = 0; i < DATA.questions.length; i++) {
+      if (DATA.questions[i].id === id) return DATA.questions[i];
+    }
+    return null;
+  }
+
+  function lessonLabel(id) {
+    var meta = lessonMeta(id);
+    return id ? id + (meta && meta.title ? " " + meta.title : "") : "分類なし";
+  }
+
+  function topicResults() {
+    var byTopic = {};
+    DATA.questions.forEach(function (q) {
+      var h = store.history[q.id];
+      if (!h || !h.a) return;
+      var t = q.topic || "その他";
+      if (!byTopic[t]) byTopic[t] = { a: 0, c: 0 };
+      byTopic[t].a += h.a;
+      byTopic[t].c += h.c;
+    });
+    return byTopic;
+  }
+
+  function weakTopicNames(byTopic) {
+    return Object.keys(byTopic).filter(function (name) {
+      return byTopic[name].a && byTopic[name].c / byTopic[name].a < WEAK_THRESHOLD;
+    }).sort(function (x, y) {
+      return byTopic[x].c / byTopic[x].a - byTopic[y].c / byTopic[y].a;
+    });
   }
 
   // ---- 出題対象の選び方 -----------------------------------------------------
@@ -528,7 +585,9 @@
       i: 0,
       correct: 0,
       wrong: [],
+      answers: [],
       answered: false,
+      finished: false,
       endsAt: mode === "test" ? Date.now() + TEST_SECONDS * 1000 : null
     };
 
@@ -580,13 +639,21 @@
   }
 
   function answer(idx) {
-    if (session.answered) return;
+    if (session.answered || session.finished) return;
     session.answered = true;
 
     var q = session.queue[session.i];
     var ok = idx === q.answer;
 
     record(q.id, ok);
+    session.answers.push({
+      qid: q.id,
+      lesson: q.lesson || null,
+      topic: q.topic || null,
+      chose: q.options[idx],
+      answer: q.options[q.answer],
+      correct: ok
+    });
     if (ok) session.correct += 1;
     else session.wrong.push({ q: q, chose: idx });
     save();
@@ -625,25 +692,40 @@
   function strip(s) { return String(s).replace(/\*\*/g, ""); }
 
   function next() {
+    if (!session || session.finished) return;
     session.i += 1;
     if (session.i >= session.queue.length) finish();
     else renderQuestion();
   }
 
   function finish() {
+    if (!session || session.finished) return;
+    session.finished = true;
     stopTimer();
     var total = session.i + (session.answered ? 1 : 0);
     if (total > session.queue.length) total = session.queue.length;
 
-    store.sessions.push({
+    var savedSession = {
       ts: Date.now(),
       mode: session.mode,
       lesson: session.lessonId,
       score: session.correct,
-      total: total
-    });
-    if (store.sessions.length > 300) store.sessions = store.sessions.slice(-300);
+      total: total,
+      answers: session.answers.slice()
+    };
+    store.sessions.push(savedSession);
+    if (store.sessions.length > SESSION_HISTORY_LIMIT) {
+      store.sessions = store.sessions.slice(-SESSION_HISTORY_LIMIT);
+    }
+    /* 得点履歴は従来どおり最大300回残す。容量を抑えるため、回答詳細だけを
+       直近100回に限定する。古い形式のセッション（answersなし）もそのまま扱える。 */
+    var detailCutoff = Math.max(0, store.sessions.length - SESSION_DETAIL_LIMIT);
+    for (var si = 0; si < detailCutoff; si++) {
+      if (store.sessions[si] && store.sessions[si].answers) delete store.sessions[si].answers;
+    }
     save();
+
+    lastResultSession = savedSession;
 
     var pct = total ? Math.round((session.correct / total) * 100) : 0;
     $("r-score").textContent = session.correct + " / " + total;
@@ -720,22 +802,14 @@
     });
     if (!DATA.lessons.length) box.innerHTML = '<p class="empty">問題がまだありません。</p>';
 
-    var byTopic = {};
-    DATA.questions.forEach(function (q) {
-      var h = store.history[q.id];
-      if (!h) return;
-      var t = q.topic || "その他";
-      if (!byTopic[t]) byTopic[t] = { a: 0, c: 0 };
-      byTopic[t].a += h.a;
-      byTopic[t].c += h.c;
-    });
+    var byTopic = topicResults();
 
     var tbox = $("s-topics");
     tbox.innerHTML = "";
     var names = Object.keys(byTopic).sort(function (x, y) {
       return byTopic[x].c / byTopic[x].a - byTopic[y].c / byTopic[y].a;
     });
-    var weak = names.filter(function (n) { return byTopic[n].c / byTopic[n].a < WEAK_THRESHOLD; });
+    var weak = weakTopicNames(byTopic);
     if (weak.length === 0) {
       tbox.innerHTML = '<p class="empty">' +
         (names.length ? "正答率70%を下回る分野はありません。" : "まだ集計できるデータがありません。") + "</p>";
@@ -744,30 +818,139 @@
     }
   }
 
-  /* 学習記録を Claude Code に貼れる形で書き出す。/review がこれを読んで弱点演習を作る */
-  function exportText() {
-    var t = totals();
-    var lines = [];
-    lines.push("# G検定ドリル 学習記録 " + todayKey());
+  function appendWeakData(lines) {
+    var byTopic = topicResults();
+    var topics = weakTopicNames(byTopic);
+    lines.push("## 現在の苦手分野");
     lines.push("");
-    lines.push("- 累計 " + t.a + "回答 / 正答 " + t.c + "（" + (t.a ? Math.round((t.c / t.a) * 100) : 0) + "%）");
-    lines.push("- 連続学習日数 " + streak());
-    lines.push("");
-    lines.push("## 未定着の問題（直近で誤答、または正答率70%未満）");
-    lines.push("");
+    if (!topics.length) {
+      lines.push("- 苦手トピック：なし（正答率70%未満なし）");
+    } else {
+      topics.forEach(function (name) {
+        var h = byTopic[name];
+        lines.push("- トピック名：" + name + "：" + Math.round((h.c / h.a) * 100) +
+          "%（" + h.c + " / " + h.a + "）");
+      });
+    }
 
     var weak = weakQuestions();
     if (!weak.length) {
-      lines.push("なし");
+      lines.push("- 苦手問題：なし");
     } else {
       weak.forEach(function (q) {
         var h = store.history[q.id];
-        lines.push("- " + q.id + "（" + (q.topic || "分類なし") + "）" +
-          h.c + "/" + h.a + " 直近" + (h.last ? "正解" : "誤答") + "：" + q.text);
+        lines.push("- 問題ID：" + q.id + "、累計 " + h.c + " / " + h.a +
+          "、直近" + (h.last ? "正解" : "誤答"));
       });
     }
     lines.push("");
-    lines.push("この記録をもとに弱点演習を作ってください。");
+  }
+
+  function answerValue(answer, key, q) {
+    var value = answer ? answer[key] : null;
+    /* 将来、容量節約のため選択肢番号で保存した形式にも対応できるようにする。 */
+    if (typeof value === "number" && q && q.options && q.options[value] !== undefined) {
+      return q.options[value];
+    }
+    return value === undefined || value === null ? "不明" : String(value);
+  }
+
+  function resultExportText(result) {
+    var total = Number(result && result.total) || 0;
+    var score = Number(result && result.score) || 0;
+    var answers = result && Array.isArray(result.answers) ? result.answers : [];
+    var wrong = answers.filter(function (a) { return a.correct === false; });
+    var lines = [];
+    lines.push("# G検定 復習データ");
+    lines.push("実施日時：" + formatDate(result && result.ts));
+    lines.push("モード：" + modeLabel(result && result.mode, result && result.lesson));
+    lines.push("得点：" + score + " / " + total);
+    lines.push("正答率：" + (total ? Math.round((score / total) * 100) : 0) + "%");
+    lines.push("");
+    lines.push("## 間違えた問題");
+    lines.push("");
+
+    if (!wrong.length) {
+      lines.push("なし");
+      lines.push("");
+    } else {
+      wrong.forEach(function (a) {
+        var q = questionById(a.qid);
+        lines.push("- 問題ID：" + (a.qid || "不明"));
+        lines.push("  講：" + lessonLabel(a.lesson || (q && q.lesson)));
+        lines.push("  トピック：" + (a.topic || (q && q.topic) || "分類なし"));
+        lines.push("  問題文：" + (q ? strip(q.text) : "問題データなし"));
+        lines.push("  自分が選んだ回答：" + answerValue(a, "chose", q));
+        lines.push("  正解：" + answerValue(a, "answer", q));
+        lines.push("  解説：" + (q ? strip(q.explanation) : "問題データなし"));
+        lines.push("");
+      });
+    }
+
+    appendWeakData(lines);
+    lines.push(REVIEW_PROMPT);
+    return lines.join("\n");
+  }
+
+  function appendRecentSessions(lines) {
+    lines.push("## 直近のテスト・演習履歴");
+    lines.push("");
+    var recent = store.sessions.slice(-RECENT_SESSION_EXPORT_LIMIT).reverse();
+    if (!recent.length) {
+      lines.push("なし");
+      lines.push("");
+      return;
+    }
+    recent.forEach(function (s) {
+      var total = Number(s.total) || 0;
+      var score = Number(s.score) || 0;
+      lines.push("- " + formatDate(s.ts) + " / " + modeLabel(s.mode, s.lesson) + " / " +
+        score + " / " + total + "（" + (total ? Math.round((score / total) * 100) : 0) + "%）");
+      if (!Array.isArray(s.answers)) {
+        lines.push("  回答詳細：なし（旧形式の記録）");
+        return;
+      }
+      var wrong = s.answers.filter(function (a) { return a.correct === false; });
+      if (!wrong.length) {
+        lines.push("  誤答：なし");
+        return;
+      }
+      wrong.forEach(function (a) {
+        var q = questionById(a.qid);
+        lines.push("  誤答 " + (a.qid || "不明") + "：" + answerValue(a, "chose", q) +
+          " → 正解 " + answerValue(a, "answer", q));
+      });
+    });
+    lines.push("");
+  }
+
+  /* ChatGPTなどへ渡せる、個人情報を含まない学習記録を作る。 */
+  function exportText() {
+    var t = totals();
+    var lines = [];
+    lines.push("# G検定ドリル 学習記録");
+    lines.push("作成日：" + todayKey());
+    lines.push("");
+    lines.push("## 全体");
+    lines.push("");
+    lines.push("- 累計回答数：" + t.a);
+    lines.push("- 累計正答数：" + t.c);
+    lines.push("- 累計正答率：" + (t.a ? Math.round((t.c / t.a) * 100) : 0) + "%");
+    lines.push("- 連続学習日数：" + streak());
+    lines.push("");
+
+    lines.push("## 講別の習得度");
+    lines.push("");
+    DATA.lessons.forEach(function (les) {
+      var p = lessonProgress(les.id);
+      lines.push("- " + les.id + " " + les.title + "：" + p.pct + "%（定着 " +
+        p.done + " / " + p.total + "項目）");
+    });
+    lines.push("");
+
+    appendWeakData(lines);
+    appendRecentSessions(lines);
+    lines.push(REVIEW_PROMPT);
     return lines.join("\n");
   }
 
@@ -791,7 +974,33 @@
     return Promise.resolve();
   }
 
+  function shareOrCopy(text, title) {
+    if (navigator.share) {
+      var shareResult;
+      try {
+        shareResult = navigator.share({ title: title, text: text });
+      } catch (e) {
+        return copy(text).then(function () { return "copied"; });
+      }
+      return Promise.resolve(shareResult)
+        .then(function () { return "shared"; })
+        /* Androidの共有先が開けない場合や共有が中断された場合も、
+           復習データを失わないようクリップボードへ残す。 */
+        .catch(function () {
+          return copy(text).then(function () { return "copied"; });
+        });
+    }
+    return copy(text).then(function () { return "copied"; });
+  }
+
+  function showActionResult(btn, result, original) {
+    btn.textContent = result === "shared" ? "共有しました" : "コピーしました";
+    setTimeout(function () { btn.textContent = original; }, 2000);
+  }
+
   // ---- 配線 ----------------------------------------------------------------
+
+  var lastResultSession = null;
 
   document.querySelectorAll("[data-mode]").forEach(function (b) {
     b.addEventListener("click", function () { start(b.dataset.mode); });
@@ -802,6 +1011,15 @@
   $("btn-home").addEventListener("click", function () {
     renderHome();
     show("home");
+  });
+
+  $("btn-share-result").addEventListener("click", function () {
+    if (!lastResultSession) return;
+    var btn = $("btn-share-result");
+    var original = "ChatGPTで復習";
+    shareOrCopy(resultExportText(lastResultSession), "G検定 復習データ").then(function (result) {
+      showActionResult(btn, result, original);
+    });
   });
 
   $("btn-stats").addEventListener("click", function () {
@@ -837,7 +1055,15 @@
     var btn = $("btn-export");
     copy(exportText()).then(function () {
       btn.textContent = "コピーしました";
-      setTimeout(function () { btn.textContent = "記録をコピー（Claude Code に貼る用）"; }, 2000);
+      setTimeout(function () { btn.textContent = "学習記録をコピー"; }, 2000);
+    });
+  });
+
+  $("btn-share-stats").addEventListener("click", function () {
+    var btn = $("btn-share-stats");
+    var original = "ChatGPTに学習記録を共有";
+    shareOrCopy(exportText(), "G検定ドリル 学習記録").then(function (result) {
+      showActionResult(btn, result, original);
     });
   });
 
