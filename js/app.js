@@ -1016,9 +1016,17 @@
   $("btn-share-result").addEventListener("click", function () {
     if (!lastResultSession) return;
     var btn = $("btn-share-result");
-    var original = "ChatGPTで復習";
+    var original = "今回の結果だけChatGPTで復習";
     shareOrCopy(resultExportText(lastResultSession), "G検定 復習データ").then(function (result) {
       showActionResult(btn, result, original);
+    });
+  });
+
+  $("btn-share-home").addEventListener("click", function () {
+    var btn = $("btn-share-home");
+    var original = "ChatGPTで復習";
+    shareOrCopy(exportText(), "G検定ドリル 学習記録").then(function (result) {
+      showActionResult(btn.querySelector(".mode__name"), result, original);
     });
   });
 
