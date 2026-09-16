@@ -33,8 +33,9 @@
     <h2 class="h2">学習モード</h2>
     <div class="modes">
       <button class="mode" data-mode="random"><span class="mode__name">ランダム20問</span><span class="mode__desc">全範囲からまんべんなく</span></button>
-      <button class="mode" data-mode="weak"><span class="mode__name">苦手復習</span><span class="mode__desc" id="weak-count">間違えた問題を集めて出題</span></button>
+      <button class="mode" data-mode="weak"><span class="mode__name">苦手をテスト</span><span class="mode__desc" id="weak-count">間違えた問題を集めて出題</span></button>
       <button class="mode" data-mode="test"><span class="mode__name">本番形式テスト</span><span class="mode__desc">20問・14分・解説なし</span></button>
+      <button class="mode" id="btn-share-home"><span class="mode__name">ChatGPTで復習</span><span class="mode__desc">これまでの成績と苦手分野を共有</span></button>
     </div>
 
     <h2 class="h2">試験範囲と達成状況</h2>
@@ -97,7 +98,7 @@
       <div class="score__label" id="r-label"></div>
     </div>
     <div id="r-review"></div>
-    <button class="btn btn--primary" id="btn-share-result">ChatGPTで復習</button>
+    <button class="btn btn--primary" id="btn-share-result">今回の結果だけChatGPTで復習</button>
     <button class="btn" id="btn-home">ホームへ</button>
   </section>
 
@@ -124,6 +125,6 @@
 <script src="js/data.js?v=4daa8cba0c"></script>
 <script src="js/lessons.js?v=fe4c4e256d"></script>
 <script src="js/map.js?v=9e5588d099"></script>
-<script src="js/app.js?v=42dbdf97f0"></script>
+<script src="js/app.js?v=7699f58e9c"></script>
 </body>
 </html>
