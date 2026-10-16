@@ -1,7 +1,7 @@
 {
-  "name": "G検定ドリル",
-  "short_name": "G検定",
-  "description": "G検定の四択演習。学習記録は端末内にのみ保存されます。",
+  "name": "AI資格学習室",
+  "short_name": "AI資格",
+  "description": "G検定・生成AIパスポートの教科書と四択演習。学習記録は資格ごとに端末内へ保存します。",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",

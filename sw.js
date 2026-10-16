@@ -9,13 +9,17 @@
  *     変化が少なく、毎回取りに行く必要がない。
  * どちらもオフライン時はキャッシュから返すので、機内モードでも動く。
  */
-const CACHE_VERSION = "gken-7699f58e9c";
+const CACHE_VERSION = "gken-f79dd5468a";
 
 const PRECACHE = [
   "./",
   "./index.html",
   "./css/style.css",
   "./js/app.js",
+  "./js/exam.js",
+  "./js/passport-data.js",
+  "./js/passport-lessons.js",
+  "./js/passport-map.js",
   "./js/data.js",
   "./js/lessons.js",
   "./js/map.js",
@@ -28,7 +32,7 @@ const PRECACHE = [
 function isContent(request) {
   if (request.mode === "navigate") return true;
   const p = new URL(request.url).pathname;
-  return p.endsWith(".html") || p.endsWith("/data.js") || p.endsWith("/lessons.js") || p.endsWith("/map.js") || p.endsWith("/app.js");
+  return p.endsWith(".html") || p.endsWith(".js");
 }
 
 self.addEventListener("install", (e) => {
@@ -41,7 +45,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("gken-") && k !== CACHE_VERSION).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

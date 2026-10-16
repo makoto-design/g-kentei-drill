@@ -24,6 +24,12 @@
 
   <!-- ホーム -->
   <section id="view-home" class="view">
+    <nav class="exam-switch" aria-label="学習する資格">
+      <a href="?exam=g-kentei" data-exam="g-kentei">G検定</a>
+      <a href="?exam=passport" data-exam="passport">生成AIパスポート</a>
+    </nav>
+    <p class="note" id="exam-note"></p>
+    <p id="load-status" role="status">教材を読み込んでいます…</p>
     <div class="tiles">
       <div class="tile"><div class="tile__num" id="stat-streak">0</div><div class="tile__label">連続日数</div></div>
       <div class="tile"><div class="tile__num" id="stat-today">0</div><div class="tile__label">今日の問題</div></div>
@@ -122,9 +128,6 @@
 
 </main>
 
-<script src="js/data.js?v=4daa8cba0c"></script>
-<script src="js/lessons.js?v=fe4c4e256d"></script>
-<script src="js/map.js?v=9e5588d099"></script>
-<script src="js/app.js?v=7699f58e9c"></script>
+<script src="js/exam.js?v=9688621f2d"></script>
 </body>
 </html>

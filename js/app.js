@@ -11,17 +11,19 @@
   var DATA = window.QUIZ_DATA || { lessons: [], questions: [] };
   var TEXT = window.LESSON_DATA || { lessons: [] };
   var MAP = window.MAP_DATA || { areas: [], lessons: [], totalItems: 0 };
-  var STORE_KEY = "gken_store_v1";
+  var CONFIG = window.EXAM_CONFIG || {};
+  var APP_TITLE = CONFIG.title || "G検定ドリル";
+  var STORE_KEY = CONFIG.storeKey || "gken_store_v1";
   var KEYS = ["ア", "イ", "ウ", "エ"];
-  var TEST_SIZE = 20;
-  var TEST_SECONDS = 14 * 60; // 本番は約41秒/問。20問なら約14分
+  var TEST_SIZE = CONFIG.testSize || 20;
+  var TEST_SECONDS = CONFIG.testSeconds || 14 * 60;
   var WEAK_THRESHOLD = 0.7;
   var SESSION_HISTORY_LIMIT = 300;
   var SESSION_DETAIL_LIMIT = 100;
   var RECENT_SESSION_EXPORT_LIMIT = 10;
   var REVIEW_PROMPT = [
     "この結果を分析して、苦手な内容を優先して説明してください。",
-    "その後、G検定レベルの4択問題を1問ずつ出してください。",
+    "その後、" + APP_TITLE + "の対象試験に合う4択問題を1問ずつ出してください。",
     "簡単すぎる選択肢は避け、正解位置が偏らないようにしてください。"
   ].join("\n");
 
@@ -191,7 +193,7 @@
     if (mode === "weak") {
       return shuffle(weakQuestions());
     }
-    return shuffle(onePerGroup(DATA.questions)).slice(0, TEST_SIZE);
+    return shuffle(onePerGroup(DATA.questions)).slice(0, mode === "test" ? TEST_SIZE : 20);
   }
 
   // ---- 画面遷移 ------------------------------------------------------------
@@ -214,7 +216,7 @@
     }
 
     VIEWS.forEach(function (v) { $("view-" + v).hidden = v !== name; });
-    $("topbar-title").textContent = title || "G検定ドリル";
+    $("topbar-title").textContent = title || APP_TITLE;
     $("btn-back").hidden = name === "home";
     $("btn-stats").hidden = name !== "home";
     window.scrollTo(0, scrollY || 0);
@@ -297,8 +299,9 @@
 
     var ready = MAP.lessons.filter(function (l) { return l.hasText; }).length;
     $("build-note").textContent =
-      "公式シラバス 大項目" + MAP.areas.length + "・中項目" + MAP.totalItems +
-      " に対応した全" + MAP.lessons.length + "講。教本" + ready + "講 / 演習" +
+      (CONFIG.coverage ? CONFIG.coverage + " " : "公式シラバス 大項目" + MAP.areas.length + "・中項目" + MAP.totalItems +
+      " に対応。") +
+      "全" + MAP.lessons.length + "講。教本" + ready + "講 / 演習" +
       DATA.questions.length + "問" +
       (MAP.generatedAt ? "（更新 " + MAP.generatedAt + "）" : "");
   }
@@ -661,13 +664,18 @@
     var buttons = $("q-options").children;
     for (var i = 0; i < buttons.length; i++) {
       buttons[i].disabled = true;
-      if (i === q.answer) buttons[i].classList.add("option--ok");
-      else if (i === idx) buttons[i].classList.add("option--ng");
+      if (session.mode !== "test") {
+        if (i === q.answer) buttons[i].classList.add("option--ok");
+        else if (i === idx) buttons[i].classList.add("option--ng");
+      }
     }
 
     // テストモードは解説を出さずテンポよく進む
     if (session.mode === "test") {
-      setTimeout(next, 350);
+      var active = session;
+      setTimeout(function () {
+        if (session === active && !$("view-quiz").hidden) next();
+      }, 350);
       return;
     }
 
@@ -692,18 +700,27 @@
   function strip(s) { return String(s).replace(/\*\*/g, ""); }
 
   function next() {
-    if (!session || session.finished) return;
+    if (!session || session.finished || $("view-quiz").hidden) return;
     session.i += 1;
     if (session.i >= session.queue.length) finish();
     else renderQuestion();
   }
 
   function finish() {
-    if (!session || session.finished) return;
+    if (!session || session.finished || $("view-quiz").hidden) return;
     session.finished = true;
     stopTimer();
     var total = session.i + (session.answered ? 1 : 0);
     if (total > session.queue.length) total = session.queue.length;
+    var unanswered = session.queue.length - total;
+    if (session.mode === "test") {
+      session.queue.slice(total).forEach(function (q) {
+        session.wrong.push({ q: q, chose: null });
+        session.answers.push({ qid: q.id, lesson: q.lesson, topic: q.topic,
+          chose: "未回答", answer: q.options[q.answer], correct: false });
+      });
+      total = session.queue.length;
+    }
 
     var savedSession = {
       ts: Date.now(),
@@ -730,7 +747,7 @@
     var pct = total ? Math.round((session.correct / total) * 100) : 0;
     $("r-score").textContent = session.correct + " / " + total;
     $("r-label").textContent = "正答率 " + pct + "%" +
-      (session.mode === "test" && pct < 75 ? "（合格ラインの目安は75%）" : "");
+      (session.mode === "test" ? "（未回答 " + unanswered + "問を含む）" : "");
 
     var box = $("r-review");
     box.innerHTML = "";
@@ -748,9 +765,16 @@
           '<p class="review__a">あなた：<span class="chose"></span> ／ 正解：<b class="ans"></b></p>' +
           '<p class="review__e"></p>';
         d.querySelector(".review__q").textContent = w.q.text;
-        d.querySelector(".chose").textContent = KEYS[w.chose] + " " + w.q.options[w.chose];
+        d.querySelector(".chose").textContent = w.chose === null ? "未回答" : KEYS[w.chose] + " " + w.q.options[w.chose];
         d.querySelector(".ans").textContent = KEYS[w.q.answer] + " " + w.q.options[w.q.answer];
         d.querySelector(".review__e").textContent = strip(w.q.explanation);
+        var reasons = document.createElement("ul");
+        Object.keys(w.q.why || {}).forEach(function (k) {
+          var li = document.createElement("li");
+          li.textContent = KEYS[Number(k)] + "：" + strip(w.q.why[k]);
+          reasons.appendChild(li);
+        });
+        d.appendChild(reasons);
         box.appendChild(d);
       });
     }
@@ -861,7 +885,7 @@
     var answers = result && Array.isArray(result.answers) ? result.answers : [];
     var wrong = answers.filter(function (a) { return a.correct === false; });
     var lines = [];
-    lines.push("# G検定 復習データ");
+    lines.push("# " + APP_TITLE + " 復習データ");
     lines.push("実施日時：" + formatDate(result && result.ts));
     lines.push("モード：" + modeLabel(result && result.mode, result && result.lesson));
     lines.push("得点：" + score + " / " + total);
@@ -928,7 +952,7 @@
   function exportText() {
     var t = totals();
     var lines = [];
-    lines.push("# G検定ドリル 学習記録");
+    lines.push("# " + APP_TITLE + " 学習記録");
     lines.push("作成日：" + todayKey());
     lines.push("");
     lines.push("## 全体");
@@ -1017,7 +1041,7 @@
     if (!lastResultSession) return;
     var btn = $("btn-share-result");
     var original = "今回の結果だけChatGPTで復習";
-    shareOrCopy(resultExportText(lastResultSession), "G検定 復習データ").then(function (result) {
+    shareOrCopy(resultExportText(lastResultSession), APP_TITLE + " 復習データ").then(function (result) {
       showActionResult(btn, result, original);
     });
   });
@@ -1025,7 +1049,7 @@
   $("btn-share-home").addEventListener("click", function () {
     var btn = $("btn-share-home");
     var original = "ChatGPTで復習";
-    shareOrCopy(exportText(), "G検定ドリル 学習記録").then(function (result) {
+    shareOrCopy(exportText(), APP_TITLE + " 学習記録").then(function (result) {
       showActionResult(btn.querySelector(".mode__name"), result, original);
     });
   });
@@ -1070,7 +1094,7 @@
   $("btn-share-stats").addEventListener("click", function () {
     var btn = $("btn-share-stats");
     var original = "ChatGPTに学習記録を共有";
-    shareOrCopy(exportText(), "G検定ドリル 学習記録").then(function (result) {
+    shareOrCopy(exportText(), APP_TITLE + " 学習記録").then(function (result) {
       showActionResult(btn, result, original);
     });
   });
@@ -1092,14 +1116,16 @@
     var hadController = !!navigator.serviceWorker.controller;
     var reloaded = false;
 
-    window.addEventListener("load", function () {
+    function registerWorker() {
       navigator.serviceWorker
         .register("sw.js")
         .then(function (reg) {
           reg.update();  // 開くたびに更新を確認する
         })
         .catch(function () { /* オフライン化は諦める */ });
-    });
+    }
+    if (document.readyState === "complete") registerWorker();
+    else window.addEventListener("load", registerWorker);
 
     /* 新しい Service Worker が制御を取ったら、1度だけ画面を作り直す。
        これがないと、教材を直してデプロイしても、

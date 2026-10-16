@@ -39,6 +39,15 @@
 
 * { box-sizing: border-box; }
 
+.exam-switch { display: flex; gap: 8px; margin: 4px 0 16px; }
+.exam-switch a { flex: 1; padding: 10px 6px; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); background: var(--surface); text-align: center; text-decoration: none; font-weight: 700; font-size: .9rem; }
+.exam-switch a[aria-current="page"] { color: var(--accent); background: var(--accent-weak); border-color: var(--accent); }
+[data-exam="passport"] { --accent: #0f766e; --accent-weak: #ccfbf1; }
+@media (prefers-color-scheme: dark) {
+  [data-exam="passport"] { --accent: #5eead4; --accent-weak: #134e4a; }
+}
+#exam-note a { color: var(--accent); }
+
 /* hidden 属性を確実に効かせる。
    ブラウザ既定の [hidden]{display:none} は属性セレクタなので詳細度が
    クラスと同点で、.btn{display:block} のような指定に負けてしまう。
