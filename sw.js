@@ -9,11 +9,15 @@
  *     変化が少なく、毎回取りに行く必要がない。
  * どちらもオフライン時はキャッシュから返すので、機内モードでも動く。
  */
-const CACHE_VERSION = "gken-f79dd5468a";
+const CACHE_VERSION = "gken-conversation-v1";
 
 const PRECACHE = [
   "./",
   "./index.html",
+  "./conversation.html",
+  "./css/conversation.css",
+  "./js/conversation-data.js",
+  "./js/conversation.js",
   "./css/style.css",
   "./js/app.js",
   "./js/exam.js",

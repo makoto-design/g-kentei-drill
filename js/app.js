@@ -430,6 +430,7 @@
 
   function openLesson(id) {
     currentLesson = id;
+    $("btn-conversation-lesson").hidden = CONFIG.id === "passport" || id !== "M2-01";
     var meta = lessonMeta(id);
     var t = textOf(id);
     var p = lessonProgress(id);
@@ -1102,6 +1103,9 @@
   $("btn-reset").addEventListener("click", function () {
     if (!confirm("学習記録をすべて消します。取り消せません。よろしいですか。")) return;
     store = { history: {}, sessions: [], days: {}, reads: {} };
+    if (CONFIG.id !== "passport") {
+      try { localStorage.removeItem("gken_conversation_m2_01_v1"); } catch (e) {}
+    }
     save();
     renderStats();
     renderHome();

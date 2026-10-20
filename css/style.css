@@ -554,3 +554,8 @@ main {
 .fig-t--sm { font-size: 11px; }
 .fig-t--b { font-weight: 700; }
 .fig-t--m { fill: var(--muted); font-size: 11px; }
+
+/* 会話型学習への独立した入口 */
+a.mode { text-decoration: none; color: var(--text); }
+.conversation-entry { border-color: var(--accent); }
+[data-exam="passport"] .conversation-entry { display: none; }
