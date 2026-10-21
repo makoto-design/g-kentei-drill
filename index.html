@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=22c03164d5">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
 
     <h2 class="h2">学習モード</h2>
     <div class="modes">
-      <a class="mode conversation-entry" href="conversation.html"><span class="mode__name">会話で学習 <small>試作</small></span><span class="mode__desc">M2-01の冒頭 · 短い説明 → 4択 → 確認タイム</span></a>
+      <a class="mode conversation-entry" href="conversation.html"><span class="mode__name">会話で学習</span><span class="mode__desc">全32講・192単位 · 説明・図解・4択・確認タイム</span></a>
       <button class="mode" data-mode="random"><span class="mode__name">ランダム20問</span><span class="mode__desc">全範囲からまんべんなく</span></button>
       <button class="mode" data-mode="weak"><span class="mode__name">苦手をテスト</span><span class="mode__desc" id="weak-count">間違えた問題を集めて出題</span></button>
       <button class="mode" data-mode="test"><span class="mode__name">本番形式テスト</span><span class="mode__desc">20問・14分・解説なし</span></button>
@@ -62,7 +62,7 @@
     </div>
     <p class="note note--tight" id="l-detail"></p>
     <button class="btn btn--primary" id="btn-read">教本を読む</button>
-    <a class="btn" id="btn-conversation-lesson" href="conversation.html" hidden>会話で学習 · 冒頭9単位を試す</a>
+    <a class="btn" id="btn-conversation-lesson" href="conversation.html" hidden>この講を会話で学習</a>
     <button class="btn" id="btn-drill">演習する</button>
   </section>
 
@@ -130,6 +130,6 @@
 
 </main>
 
-<script src="js/exam.js?v=da0d4ad93a"></script>
+<script src="js/exam.js?v=c2e1755f6a"></script>
 </body>
 </html>

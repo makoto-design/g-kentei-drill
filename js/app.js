@@ -430,7 +430,8 @@
 
   function openLesson(id) {
     currentLesson = id;
-    $("btn-conversation-lesson").hidden = CONFIG.id === "passport" || id !== "M2-01";
+    $("btn-conversation-lesson").hidden = CONFIG.id === "passport";
+    $("btn-conversation-lesson").href = "conversation.html?lesson=" + encodeURIComponent(id);
     var meta = lessonMeta(id);
     var t = textOf(id);
     var p = lessonProgress(id);
@@ -1104,7 +1105,11 @@
     if (!confirm("学習記録をすべて消します。取り消せません。よろしいですか。")) return;
     store = { history: {}, sessions: [], days: {}, reads: {} };
     if (CONFIG.id !== "passport") {
-      try { localStorage.removeItem("gken_conversation_m2_01_v1"); } catch (e) {}
+      try {
+        Object.keys(localStorage).filter(function (key) {
+          return /^gken_conversation_(?:m\d+_\d+_v1|last_lesson_v1)$/.test(key);
+        }).forEach(function (key) { localStorage.removeItem(key); });
+      } catch (e) {}
     }
     save();
     renderStats();
