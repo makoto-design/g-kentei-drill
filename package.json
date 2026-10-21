@@ -1,0 +1,13 @@
+{
+  "name": "g-kentei-drill",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "build:course": "node scripts/build-conversation-course.cjs",
+    "check": "npm run build:course && npm test"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  },
+  "packageManager": "pnpm@11.25.0"
+}
