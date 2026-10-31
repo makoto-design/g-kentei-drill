@@ -34,7 +34,7 @@
       return;
     }
     var script = document.createElement("script");
-    script.src = "js/" + files[i] + ".js?v=" + {"data":"1e9d3f3050","lessons":"fe4c4e256d","map":"ae79c106fa","app":"4eb6c0f164","exam":"793f30f7f4","passport-data":"b65b2bba37","passport-lessons":"c8019e1fc2","passport-map":"3e50a3af21"}[files[i]];
+    script.src = "js/" + files[i] + ".js?v=" + {"data":"e023cd1800","lessons":"fe4c4e256d","map":"32c791a8b7","app":"4eb6c0f164","exam":"793f30f7f4","passport-data":"b65b2bba37","passport-lessons":"c8019e1fc2","passport-map":"3e50a3af21"}[files[i]];
     script.onload = function () { read(i + 1); };
     script.onerror = function () {
       document.getElementById("load-status").textContent = "教材を読み込めませんでした。接続を確認して再読み込みしてください。";

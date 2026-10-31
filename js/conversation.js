@@ -122,7 +122,7 @@
     } else {
       var a = state.answers[u.id];
       screen.innerHTML = top + '<section class="cv-card cv-result ' + (a.correct ? 'is-correct' : '') + '" tabindex="-1" aria-label="回答結果"><h2>' + (a.correct ? '✓ 正解です' : '↺ 不正解 · ここで確認しましょう') + '</h2><p class="cv-small">あなたの回答：' + marks[a.selected] + ' ' + esc(u.options[a.selected]) + '</p><p class="cv-answer">正解：' + marks[u.answer] + ' ' + esc(u.options[u.answer]) + '</p><p>' + esc(u.explanation) + '</p><details><summary>問題を見返す</summary><p>' + esc(u.question) + '</p></details></section>' +
-        '<section class="cv-card"><p class="cv-kicker">分かったら、次へ。</p><h2 class="cv-check-title">確認タイム</h2><p class="cv-lead">まだ曖昧なところはありますか？</p><div class="cv-actions">' + handoffButton() + button('revisit', '説明と図を見返す', 'cv-wide') + button('again', 'もう一度説明') + button('example', '別の例で説明') + button('ai', 'AIに聞く · 質問文をコピー', 'cv-wide') + '</div><div id="cv-help" aria-live="polite"></div><div id="cv-ai"></div><div class="cv-actions">' + button('next', state.index === units.length - 1 ? '次へ · 今回のまとめ' : '次へ', 'cv-wide cv-primary') + '</div></section>';
+        '<section class="cv-card"><p class="cv-kicker">分かったら、次へ。</p><h2 class="cv-check-title">確認タイム</h2><p class="cv-lead">まだ曖昧なところはありますか？</p><div class="cv-actions">' + handoffButton() + button('revisit', '説明と図を見返す', 'cv-wide') + button('again', 'もう一度説明') + button('example', '別の例で説明') + button('ai', 'AIに聞く · 質問文をコピー', 'cv-wide') + '</div><div id="cv-help" aria-live="polite"></div><div id="cv-ai"></div><div class="cv-actions">' + button('retry', '戻る · 問題を解き直す', 'cv-wide') + button('next', state.index === units.length - 1 ? '次へ · 今回のまとめ' : '次へ', 'cv-wide cv-primary') + '</div></section>';
     }
     focusHeading();
   }
@@ -249,6 +249,15 @@
       readingPage = 0; reviewReturn = null; state = fresh(); save(); render(); return;
     }
     if (!state) return;
+    if (action === 'retry' && state.stage === 'review') {
+      // 解き直す単位だけを未回答に戻す。補足・読み返しの「戻る」は回答を保持する。
+      delete state.answers[units[state.index].id];
+      reviewReturn = null;
+      readingPage = 0;
+      if (Object.prototype.hasOwnProperty.call(state, 'readingPage')) state.readingPage = 0;
+      state.stage = 'quiz';
+      save(); render(); return;
+    }
     if (action === 'read-next' || action === 'read-previous') {
       var pages = units[state.index].bodyPages || [];
       if (state.stage !== 'read') return;
