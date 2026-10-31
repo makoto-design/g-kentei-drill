@@ -10,7 +10,7 @@
  *     変化が少なく、毎回取りに行く必要がない。
  * どちらもオフライン時はキャッシュから返すので、機内モードでも動く。
  */
-const CACHE_VERSION = "gken-conversation-v6.2-d470fc5a79";
+const CACHE_VERSION = "gken-conversation-v6.2-48e7fa6fb2";
 
 const PRECACHE = [
   "./",
@@ -24,18 +24,18 @@ const PRECACHE = [
   "./js/conversation-catalog.js?v=fbb56874c1",
   "./js/conversation-course-visuals.js?v=8cd99ee758",
   "./js/conversation-m202-visuals.js?v=35876d621f",
-  "./js/conversation.js?v=d81c7f0620",
+  "./js/conversation.js?v=c2b9150128",
   "./js/conversation-handoff.js?v=66c6656740",
   "./js/conversation-visuals.js?v=aae450f44e",
   "./css/style.css?v=22c03164d5",
   "./js/app.js?v=4eb6c0f164",
-  "./js/exam.js?v=c2e1755f6a",
+  "./js/exam.js?v=6a6e91c9cc",
   "./js/passport-data.js?v=b65b2bba37",
   "./js/passport-lessons.js?v=c8019e1fc2",
   "./js/passport-map.js?v=3e50a3af21",
-  "./js/data.js?v=1e9d3f3050",
+  "./js/data.js?v=e023cd1800",
   "./js/lessons.js?v=fe4c4e256d",
-  "./js/map.js?v=ae79c106fa",
+  "./js/map.js?v=32c791a8b7",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
